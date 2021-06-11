@@ -23,7 +23,6 @@ const Login = ({ setCorsErrorModalOpen }) => {
       baseUrl: issuer.split('/oauth2')[0],
       clientId,
       redirectUri,
-      logo: '/react.svg',
       i18n: {
         en: {
           'primaryauth.title': 'Sign in to ISpace',

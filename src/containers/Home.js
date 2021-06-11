@@ -86,7 +86,7 @@ const Home = () => {
           <p>
             You have successfully authenticated against your Okta org, and have been redirected back to this application.  You now have an ID token and access token in local storage.
           </p>
-          <Button id="logout-butotn" variant="outlined" color="secondary" onClick={logout}>Logout</Button>
+          <Button id="logout-button" variant="outlined" color="secondary" onClick={logout}>Logout</Button>
         </div>
         )}
 

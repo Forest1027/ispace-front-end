@@ -7,6 +7,10 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import DeckIcon from '@material-ui/icons/Deck';
+import Box from "@material-ui/core/Box";
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { NavLink } from "react-router-dom";
+import { useOktaAuth } from '@okta/okta-react';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,26 +22,41 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  link: {
+    textDecoration: 'none'
+  }
 }));
 
-export default function NavBar() {
+const NavBar = (props) => {
   const classes = useStyles();
+  const matches = useMediaQuery('(min-width: 550px)')
+  const { authState, oktaAuth } = useOktaAuth();
+  const navButtons = (
+    <Box className={classes.buttonRoot} display="flex" justifyContent="flex-end">
+      {
+        Object.keys(props.navItems).map(btnName => {
+          const shouldShow = props.navItems[btnName].isAuth ? authState.isAuthenticated : !authState.isAuthenticated;
+          return shouldShow ? (
+            <NavLink className={classes.link} to={props.navItems[btnName].url} key={btnName}><Button color="secondary">{btnName}</Button></NavLink>) : null
+        })
+      }
+    </Box>
+  );
 
   return (
     <div className={classes.root}>
       <AppBar position="static" color="primary">
         <Toolbar>
-          {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-            <MenuIcon />
-          </IconButton> */}
           <IconButton color="secondary">
-            <DeckIcon />
+            {matches ? <DeckIcon /> : <MenuIcon onClick={props.open} />}
           </IconButton>
           <Typography variant="h6" className={classes.title}>
           </Typography>
-          <Button color="inherit">Login</Button>
+          {matches ? navButtons : <DeckIcon position="flex-end" color="secondary"/>}
         </Toolbar>
       </AppBar>
     </div>
   );
 }
+
+export default NavBar;
