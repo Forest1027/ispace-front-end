@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { Route, useHistory, Switch } from 'react-router-dom';
 import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
 import { Security, LoginCallback } from '@okta/okta-react';
@@ -8,6 +8,7 @@ import CustomLoginComponent from './containers/Login';
 import Navbar from './components/UI/NavBar';
 import Container from '@material-ui/core/Container';
 import * as layoutConstants from "./constants/LayoutConstants";
+import CredentialForm from './components/Auth/CredentialForm';
 
 import './App.css';
 
@@ -29,24 +30,37 @@ const App = () => {
     history.push('/login');
   };
 
+
+  const logout = async () => {
+    try {
+      await oktaAuth.signOut();
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const signup = async () => {
+    history.push("/signup");
+  }
+
   const [corsErrorModalOpen, setCorsErrorModalOpen] = useState(false);
   const [navItems, setNavItems] = useState({
-    "Login" : {
-        "isAuth":false,
-        "url":layoutConstants.LOGIN_URL,
-        "icon":layoutConstants.LOGIN_ICON
+    "Login": {
+      "isAuth": false,
+      "clicked": customAuthHandler,
+      "icon": layoutConstants.LOGIN_ICON
     },
-    // "Signup" : {
-    //     "isAuth":false,
-    //     "url":layoutConstants.SIGNUP_URL,
-    //     "icon":layoutConstants.SIGNUP_ICON
-    // },
+    "Signup" : {
+        "isAuth":false,
+        "clicked":signup,
+        "icon":layoutConstants.SIGNUP_ICON
+    },
     "Logout": {
-        "isAuth":true,
-        "url":layoutConstants.LOGOUT_URL,
-        "icon":layoutConstants.LOGOUT_ICON
+      "isAuth": true,
+      "clicked": logout,
+      "icon": layoutConstants.LOGOUT_ICON
     }
-});
+  });
 
   return (
     <Security
@@ -54,12 +68,13 @@ const App = () => {
       onAuthRequired={customAuthHandler}
       restoreOriginalUri={restoreOriginalUri}
     >
-      <Navbar navItems={{...navItems}}/>
+      <Navbar navItems={{ ...navItems }} />
       <Container text style={{ marginTop: '7em' }}>
         <Switch>
           <Route path="/" exact component={Home} />
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />
           <Route path="/login" render={() => <CustomLoginComponent {...{ setCorsErrorModalOpen }} />} />
+          <Route path="/signup" render={(props) => <CredentialForm {...props}/>}/>
         </Switch>
       </Container>
     </Security>

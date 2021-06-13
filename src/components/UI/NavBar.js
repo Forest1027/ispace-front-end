@@ -37,7 +37,7 @@ const NavBar = (props) => {
         Object.keys(props.navItems).map(btnName => {
           const shouldShow = props.navItems[btnName].isAuth ? authState.isAuthenticated : !authState.isAuthenticated;
           return shouldShow ? (
-            <NavLink className={classes.link} to={props.navItems[btnName].url} key={btnName}><Button color="secondary">{btnName}</Button></NavLink>) : null
+            <Button color="secondary" onClick={props.navItems[btnName].clicked}>{btnName}</Button>) : null
         })
       }
     </Box>
