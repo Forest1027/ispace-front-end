@@ -80,6 +80,7 @@ const CredentialForm = (props) => {
                                 error={!props.formData[fieldName].valid && props.formData[fieldName].touched}
                                 helperText={(!props.formData[fieldName].valid && props.formData[fieldName].touched) ? props.formData[fieldName].helpText : ""}
                                 size="small"
+                                value={props.formData[fieldName].value}
                             />
                         </Box>
                     ))}

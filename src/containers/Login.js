@@ -1,68 +1,135 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
 import * as OktaSignIn from '@okta/okta-signin-widget';
 import '@okta/okta-signin-widget/dist/css/okta-sign-in.min.css';
 import config from '../config/okta-config';
+import { checkValidity, updateObject } from "../common/utility";
+import CredentialForm from "../components/Auth/CredentialForm";
 
 const Login = ({ setCorsErrorModalOpen }) => {
   const { oktaAuth } = useOktaAuth();
-  const widgetRef = useRef();
+  const [sessionToken, setSessionToken] = useState();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    if (!widgetRef.current) {
-      return false;
-    }
 
-    const { issuer, clientId, redirectUri, scopes, useInteractionCode } = config.oidc;
-    const widget = new OktaSignIn({
-      /**
-       * Note: when using the Sign-In Widget for an OIDC flow, it still
-       * needs to be configured with the base URL for your Okta Org. Here
-       * we derive it from the given issuer for convenience.
-       */
-      baseUrl: issuer.split('/oauth2')[0],
-      clientId,
-      redirectUri,
-      i18n: {
-        en: {
-          'primaryauth.title': 'Sign in to ISpace',
-        },
-      },
-      authParams: {
-        // To avoid redirect do not set "pkce" or "display" here. OKTA-335945
-        issuer,
-        scopes,
-      },
-      useInteractionCodeFlow: useInteractionCode, // Set to true, if your org is OIE enabled
-    });
 
-    widget.renderEl(
-      { el: widgetRef.current },
-      (res) => {
-        console.log(res);
-        oktaAuth.handleLoginRedirect(res.tokens);
-      },
-      (err) => {
-        throw err;
-      },
-    );
+  // const handleUsernameChange = (e) => {
+  //   setUsername(e.target.value);
+  // };
 
-    // Note: Can't distinguish CORS error from other network errors
-    const isCorsError = (err) => (err.name === 'AuthApiError' && !err.statusCode);
+  // const handlePasswordChange = (e) => {
+  //   setPassword(e.target.value);
+  // };
 
-    widget.on('afterError', (_context, error) => {
-      if (isCorsError(error)) {
-        setCorsErrorModalOpen(true);
+
+
+  const [credentialItems, setCredentialItems] = useState({
+    email: {
+      value: '',
+      type: 'email',
+      name: 'email',
+      display: 'Email',
+      placeholder: 'Your Email',
+      touched: false,
+      valid: false,
+      helpText: '',
+      validation: {
+        required: true,
+        isEmail: true,
       }
-    });
+    },
+    password: {
+      value: '',
+      type: 'password',
+      name: 'password',
+      display: 'Password',
+      placeholder: 'Your Password',
+      touched: false,
+      valid: false,
+      helpText: '',
+      validation: {
+        required: true,
+      }
+    },
+  })
 
-    return () => widget.remove();
-  }, [oktaAuth]);
+  const [formIsValid, setFormIsValid] = useState(false);
+
+  const onInputChangeHandler = (event) => {
+    const name = event.target.name;
+    const inputVal = event.target.value;
+    const errorArr = checkValidity(inputVal, credentialItems[name].validation, credentialItems['password'].value)
+    const helpText = errorArr.join(',');
+    if (name === 'email') {
+      setUsername(inputVal);
+    }
+    if (name === 'password') {
+      setPassword(inputVal);
+    }
+    const updatedObj = updateObject(credentialItems, {
+      [name]: updateObject(credentialItems[name], {
+        value: inputVal,
+        touched: true,
+        valid: errorArr.length === 0,
+        helpText: helpText
+      })
+    });
+    let formValid = false;
+    for (let key in updatedObj) {
+      formValid = updatedObj[key].valid
+    }
+    setCredentialItems(updatedObj);
+    setFormIsValid(formValid);
+  };
+
+  const onSubmitHandler = (e) => {
+    e.preventDefault();
+
+    oktaAuth.signInWithCredentials({ username, password })
+      .then(res => {
+        const sessionToken = res.sessionToken;
+        setSessionToken(sessionToken);
+        // sessionToken is a one-use token, so make sure this is only called once
+        oktaAuth.signInWithRedirect({ sessionToken });
+      })
+      .catch(err => console.log('Found an error', err));
+  };
+
+  let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
+    formData={credentialItems} formValid={formIsValid} />);
+
+  if (sessionToken) {
+    // Hide form while sessionToken is converted into id/access tokens
+    return null;
+  }
 
   return (
     <div>
-      <div ref={widgetRef} />
+      {form}
     </div>
+
   );
+
+  // return (
+  // <form onSubmit={handleSubmit}>
+  //   <label>
+  //     Username:
+  //     <input
+  //       id="username" type="text"
+  //       value={username}
+  //       onChange={handleUsernameChange} />
+  //   </label>
+  //   <label>
+  //     Password:
+  //     <input
+  //       id="password" type="password"
+  //       value={password}
+  //       onChange={handlePasswordChange} />
+  //   </label>
+  //   <input id="submit" type="submit" value="Submit" />
+  // </form>
+  // );
 };
+
 export default Login;

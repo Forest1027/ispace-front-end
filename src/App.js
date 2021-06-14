@@ -4,7 +4,7 @@ import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
 import { Security, LoginCallback } from '@okta/okta-react';
 import oktaConfig from './config/okta-config';
 import Home from './containers/Home';
-import CustomLoginComponent from './containers/Login';
+import Login from './containers/Login';
 import Navbar from './components/UI/NavBar';
 import Container from '@material-ui/core/Container';
 import * as layoutConstants from "./common/LayoutConstants";
@@ -83,7 +83,7 @@ const App = () => {
         <Switch>
           <Route path="/" exact component={Home} />
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />
-          <Route path="/login" render={() => <CustomLoginComponent {...{ setCorsErrorModalOpen }} />} />
+          <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={Signup} />
         </Switch>
       </Container>
