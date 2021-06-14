@@ -9,9 +9,10 @@ const outerTheme = createMuiTheme({
   palette: {
     primary: {
       main: '#212121',
+      light: '#e0e0e0',
     },
     secondary: {
-      main: '#2196f3',
+      main: '#42a5f5',
     },
   },
 });
