@@ -80,8 +80,10 @@ const Signup = (props) => {
             display: 'Nickame',
             placeholder: 'Nickame',
             touched: false,
-            valid: false,
+            valid: true,
             helpText: '',
+            validation: {
+            }
         },
     })
 
@@ -100,9 +102,9 @@ const Signup = (props) => {
                 helpText: helpText
             })
         });
-        let formValid = false;
+        let formValid = true;
         for (let key in updatedObj) {
-            formValid = updatedObj[key].valid
+            formValid = formValid && updatedObj[key].valid
         }
         setCredentialItems(updatedObj);
         setFormIsValid(formValid);
@@ -113,13 +115,13 @@ const Signup = (props) => {
     };
 
     let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
-        formData={credentialItems} formValid={formIsValid} formType={credentialType}/>);
+        formData={credentialItems} formValid={formIsValid} formType={credentialType} />);
 
     return (
         <div>
             {form}
         </div>
-        
+
     );
 };
 
