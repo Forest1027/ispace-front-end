@@ -9,7 +9,6 @@ import MenuIcon from '@material-ui/icons/Menu';
 import DeckIcon from '@material-ui/icons/Deck';
 import Box from "@material-ui/core/Box";
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { NavLink } from "react-router-dom";
 import { useOktaAuth } from '@okta/okta-react';
 
 const useStyles = makeStyles((theme) => ({
@@ -37,7 +36,7 @@ const NavBar = (props) => {
         Object.keys(props.navItems).map(btnName => {
           const shouldShow = props.navItems[btnName].isAuth ? authState.isAuthenticated : !authState.isAuthenticated;
           return shouldShow ? (
-            <Button color="secondary" onClick={props.navItems[btnName].clicked}>{btnName}</Button>) : null
+            <Button color="secondary" onClick={props.navItems[btnName].clicked} key={btnName}>{btnName}</Button>) : null
         })
       }
     </Box>

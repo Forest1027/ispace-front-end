@@ -7,14 +7,24 @@ import Home from './containers/Home';
 import CustomLoginComponent from './containers/Login';
 import Navbar from './components/UI/NavBar';
 import Container from '@material-ui/core/Container';
-import * as layoutConstants from "./constants/LayoutConstants";
-import CredentialForm from './components/Auth/CredentialForm';
+import * as layoutConstants from "./common/LayoutConstants";
+import Signup from './containers/Signup';
+import { makeStyles } from '@material-ui/core/styles';
 
 import './App.css';
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    [theme.breakpoints.up('sm')]: {
+      marginTop: '5em',
+    },
+  },
+}));
 
 const oktaAuth = new OktaAuth(oktaConfig.oidc);
 
 const App = () => {
+  const classes = useStyles();
   const history = useHistory(); // example from react-router
 
   const restoreOriginalUri = async (_oktaAuth, originalUri) => {
@@ -50,10 +60,10 @@ const App = () => {
       "clicked": customAuthHandler,
       "icon": layoutConstants.LOGIN_ICON
     },
-    "Signup" : {
-        "isAuth":false,
-        "clicked":signup,
-        "icon":layoutConstants.SIGNUP_ICON
+    "Signup": {
+      "isAuth": false,
+      "clicked": signup,
+      "icon": layoutConstants.SIGNUP_ICON
     },
     "Logout": {
       "isAuth": true,
@@ -69,12 +79,12 @@ const App = () => {
       restoreOriginalUri={restoreOriginalUri}
     >
       <Navbar navItems={{ ...navItems }} />
-      <Container text style={{ marginTop: '7em' }}>
+      <Container text className={classes.root}>
         <Switch>
           <Route path="/" exact component={Home} />
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />
           <Route path="/login" render={() => <CustomLoginComponent {...{ setCorsErrorModalOpen }} />} />
-          <Route path="/signup" render={(props) => <CredentialForm {...props}/>}/>
+          <Route path="/signup" exact component={Signup} />
         </Switch>
       </Container>
     </Security>

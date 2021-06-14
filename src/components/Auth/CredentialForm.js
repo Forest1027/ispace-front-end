@@ -1,24 +1,16 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 import Divider from '@material-ui/core/Divider';
-import InboxIcon from '@material-ui/icons/Inbox';
-import DraftsIcon from '@material-ui/icons/Drafts';
 import Box from '@material-ui/core/Box';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
-import Grid from "@material-ui/core/Grid";
-import { Autorenew } from '@material-ui/icons';
 import Button from "@material-ui/core/Button";
 
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
-        maxWidth: '500px',
+        maxWidth: '400px',
         backgroundColor: theme.palette.background.paper,
     },
     header: {
@@ -38,11 +30,28 @@ const useStyles = makeStyles((theme) => ({
         height: '100%',
         textAlign: 'left',
         margin: '25px',
-        width: '220px'
+        [theme.breakpoints.up('sm')]: {
+            width: '220px',
+        },
     },
     divider: {
         paddingBottom: '5%'
-    }
+    },
+    inputClass: {
+
+        [theme.breakpoints.up('sm')]: {
+            width: '300px',
+            fullWidth: true,
+        },
+    },
+    boxBorder: {
+        [theme.breakpoints.up('sm')]: {
+            border: '1px',
+            borderStyle: 'solid',
+            borderColor: "#e0e0e0",
+            borderRadius: "5px",
+        },
+    },
 }));
 
 const CredentialForm = (props) => {
@@ -50,38 +59,37 @@ const CredentialForm = (props) => {
 
     return (
         <Container className={classes.root} >
-            <Box border={1} borderColor="primary.light" borderRadius="borderRadius" justifyContent="center">
+            <Box className={classes.boxBorder} justifyContent="center">
                 <Box className={classes.header}>
-                    <Typography variant="h6" gutterBottom>Sign Up</Typography>
+                    <Typography variant="h6">Sign Up</Typography>
                 </Box>
                 <Box className={classes.divider}>
                     <Divider />
                 </Box>
                 <form>
-                    <Box className={classes.body}>
-                        <TextField
-                            required
-                            id="outlined-required"
-                            variant="outlined"
-                            size="small"
-                            label="Username"
-                        />
-                    </Box>
-                    <Box className={classes.body}>
-                        <TextField
-                            required
-                            id="outlined-required"
-                            variant="outlined"
-                            size="small"
-                            label="Password"
-                        />
-                    </Box>
+                    {Object.keys(props.formData).map(fieldName => (
+                        <Box className={classes.body} key={fieldName}>
+                            <TextField
+                                id={props.formData[fieldName].name}
+                                label={props.formData[fieldName].placeholder}
+                                variant="outlined"
+                                className={classes.inputClass}
+                                onChange={props.changed}
+                                name={props.formData[fieldName].name}
+                                type={props.formData[fieldName].type}
+                                error={!props.formData[fieldName].valid && props.formData[fieldName].touched}
+                                helperText={(!props.formData[fieldName].valid && props.formData[fieldName].touched) ? props.formData[fieldName].helpText : ""}
+                                size="small"
+                            />
+                        </Box>
+                    ))}
                     <Box className={classes.body}>
                         <input type="checkbox" name="remember" id="remember" />
-                        <label for="remember" class="">Remember me</label>
+                        <label>Remember me</label>
                     </Box>
                     <Box className={classes.body}>
-                        <Button className={classes.submitButton} variant="contained">Submit</Button>
+                        <Button className={classes.submitButton} variant="contained" onClick={props.submitted} disabled={!props.formValid}
+                        >Submit</Button>
                     </Box>
                 </form>
             </Box>
