@@ -61,7 +61,7 @@ const CredentialForm = (props) => {
         <Container className={classes.root} >
             <Box className={classes.boxBorder} justifyContent="center">
                 <Box className={classes.header}>
-                    <Typography variant="h6">Sign Up</Typography>
+                    <Typography variant="h6">{props.formType}</Typography>
                 </Box>
                 <Box className={classes.divider}>
                     <Divider />

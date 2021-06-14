@@ -1,28 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useOktaAuth } from '@okta/okta-react';
-import * as OktaSignIn from '@okta/okta-signin-widget';
 import '@okta/okta-signin-widget/dist/css/okta-sign-in.min.css';
-import config from '../config/okta-config';
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
+import * as constants from '../common/LayoutConstants';
 
 const Login = ({ setCorsErrorModalOpen }) => {
   const { oktaAuth } = useOktaAuth();
   const [sessionToken, setSessionToken] = useState();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
-
-
-  // const handleUsernameChange = (e) => {
-  //   setUsername(e.target.value);
-  // };
-
-  // const handlePasswordChange = (e) => {
-  //   setPassword(e.target.value);
-  // };
-
-
+  const [credentialType, setCredentialType] = useState(constants.LOGIN)
 
   const [credentialItems, setCredentialItems] = useState({
     email: {
@@ -97,7 +85,7 @@ const Login = ({ setCorsErrorModalOpen }) => {
   };
 
   let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
-    formData={credentialItems} formValid={formIsValid} />);
+    formData={credentialItems} formValid={formIsValid} formType={credentialType}/>);
 
   if (sessionToken) {
     // Hide form while sessionToken is converted into id/access tokens
@@ -110,26 +98,6 @@ const Login = ({ setCorsErrorModalOpen }) => {
     </div>
 
   );
-
-  // return (
-  // <form onSubmit={handleSubmit}>
-  //   <label>
-  //     Username:
-  //     <input
-  //       id="username" type="text"
-  //       value={username}
-  //       onChange={handleUsernameChange} />
-  //   </label>
-  //   <label>
-  //     Password:
-  //     <input
-  //       id="password" type="password"
-  //       value={password}
-  //       onChange={handlePasswordChange} />
-  //   </label>
-  //   <input id="submit" type="submit" value="Submit" />
-  // </form>
-  // );
 };
 
 export default Login;

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
+import * as constants from '../common/LayoutConstants';
 
 const Signup = (props) => {
+    const [credentialType, setCredentialType] = useState(constants.SIGNUP)
     const [credentialItems, setCredentialItems] = useState({
         email: {
             value: '',
@@ -111,7 +113,7 @@ const Signup = (props) => {
     };
 
     let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
-        formData={credentialItems} formValid={formIsValid} />);
+        formData={credentialItems} formValid={formIsValid} formType={credentialType}/>);
 
     return (
         <div>

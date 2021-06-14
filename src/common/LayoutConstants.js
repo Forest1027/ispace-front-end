@@ -1,7 +1,7 @@
 export const MY_ARTICLE='My Articles';
 export const MY_PROFILE='My Profile';
-export const LOGIN='Login';
-export const SIGNUP='Signup';
+export const LOGIN='Log In';
+export const SIGNUP='Sign Up';
 export const LOGOUT='Logout';
 
 export const MY_ARTICLE_URL='/articles';

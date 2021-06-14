@@ -53,7 +53,6 @@ const App = () => {
     history.push("/signup");
   }
 
-  const [corsErrorModalOpen, setCorsErrorModalOpen] = useState(false);
   const [navItems, setNavItems] = useState({
     "Login": {
       "isAuth": false,
