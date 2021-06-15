@@ -4,7 +4,7 @@ import CredentialForm from "../components/Auth/CredentialForm";
 import * as constants from '../common/LayoutConstants';
 
 const Signup = (props) => {
-    const [credentialType, setCredentialType] = useState(constants.SIGNUP)
+    const [credentialType] = useState(constants.SIGNUP)
     const [credentialItems, setCredentialItems] = useState({
         email: {
             value: '',

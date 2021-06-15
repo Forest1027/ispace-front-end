@@ -31,7 +31,7 @@ const App = () => {
     history.replace(toRelativeUrl(originalUri, window.location.origin));
   };
 
-  const customAuthHandler = () => {
+  const login = () => {
     // Redirect to the /login page that has a CustomLoginComponent
     history.push('/login');
   };
@@ -53,10 +53,10 @@ const App = () => {
     history.push("/signup");
   }
 
-  const [navItems, setNavItems] = useState({
+  const [navItems] = useState({
     "Login": {
       "isAuth": false,
-      "clicked": customAuthHandler,
+      "clicked": login,
       "icon": layoutConstants.LOGIN_ICON
     },
     "Signup": {
@@ -74,7 +74,7 @@ const App = () => {
   return (
     <Security
       oktaAuth={oktaAuth}
-      onAuthRequired={customAuthHandler}
+      onAuthRequired={login}
       restoreOriginalUri={restoreOriginalUri}
     >
       <Navbar navItems={{ ...navItems }} />
