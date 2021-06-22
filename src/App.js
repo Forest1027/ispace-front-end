@@ -7,7 +7,7 @@ import Home from './containers/Home';
 import Login from './containers/Login';
 import Navbar from './components/UI/NavBar';
 import Container from '@material-ui/core/Container';
-import * as layoutConstants from "./common/LayoutConstants";
+import * as layoutConstants from "./common/Constants";
 import Signup from './containers/Signup';
 import { makeStyles } from '@material-ui/core/styles';
 

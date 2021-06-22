@@ -3,7 +3,7 @@ import { useOktaAuth } from '@okta/okta-react';
 import '@okta/okta-signin-widget/dist/css/okta-sign-in.min.css';
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
-import * as constants from '../common/LayoutConstants';
+import * as constants from '../common/Constants';
 
 const Login = () => {
   const { oktaAuth } = useOktaAuth();

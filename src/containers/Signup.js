@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
-import * as constants from '../common/LayoutConstants';
+import * as constants from '../common/Constants';
+import axios from "axios";
+import { Redirect } from "react-router";
 
 const Signup = (props) => {
     const [credentialType] = useState(constants.SIGNUP)
@@ -88,6 +90,7 @@ const Signup = (props) => {
     })
 
     const [formIsValid, setFormIsValid] = useState(false);
+    const [error, setError] = useState("");
 
     const onInputChangeHandler = (event) => {
         const name = event.target.name;
@@ -110,8 +113,25 @@ const Signup = (props) => {
         setFormIsValid(formValid);
     };
 
-    const onSubmitHandler = () => {
-        props.onSubmit(credentialItems.email.value, credentialItems.password.value);
+    const onSubmitHandler = (event) => {
+        console.log("post: "+constants.USER_MANAGEMENT_BASE_URL + '​/userManagement​/v1​/users​/register')
+        event.preventDefault();
+        const userInfo =
+        {
+            firstName: credentialItems['firstName'].value,
+            lastName: credentialItems['lastName'].value,
+            nickName: credentialItems['nickName'].value,
+            password: credentialItems['password'].value,
+            email: credentialItems['email'].value
+        };
+        axios.post('http://localhost:8090/userManagement/v1/users/register', userInfo)
+            .then(res => {
+                props.history.push('/login')
+            })
+            .catch(error => {
+                console.log(error)
+                setError(error.errorSummary);
+            });
     };
 
     let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
