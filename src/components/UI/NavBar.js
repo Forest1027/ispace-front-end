@@ -10,6 +10,7 @@ import DeckIcon from '@material-ui/icons/Deck';
 import Box from "@material-ui/core/Box";
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useOktaAuth } from '@okta/okta-react';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,6 +31,7 @@ const NavBar = (props) => {
   const classes = useStyles();
   const matches = useMediaQuery('(min-width: 550px)')
   const { authState } = useOktaAuth();
+  const history = useHistory();
   const navButtons = (
     <Box className={classes.buttonRoot} display="flex" justifyContent="flex-end">
       {
@@ -47,7 +49,7 @@ const NavBar = (props) => {
       <AppBar position="static" color="primary">
         <Toolbar>
           <IconButton color="secondary">
-            {matches ? <DeckIcon /> : <MenuIcon onClick={props.open} />}
+            {matches ? <DeckIcon onClick={() => {history.push('/')}}/> : <MenuIcon onClick={props.open} />}
           </IconButton>
           <Typography variant="h6" className={classes.title}>
           </Typography>
