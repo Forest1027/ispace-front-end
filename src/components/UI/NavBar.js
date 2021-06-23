@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
 const NavBar = (props) => {
   const classes = useStyles();
   const matches = useMediaQuery('(min-width: 550px)')
-  const { authState, oktaAuth } = useOktaAuth();
+  const { authState } = useOktaAuth();
   const navButtons = (
     <Box className={classes.buttonRoot} display="flex" justifyContent="flex-end">
       {

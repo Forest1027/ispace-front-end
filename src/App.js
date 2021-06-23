@@ -78,7 +78,7 @@ const App = () => {
       restoreOriginalUri={restoreOriginalUri}
     >
       <Navbar navItems={{ ...navItems }} />
-      <Container text className={classes.root}>
+      <Container className={classes.root}>
         <Switch>
           <Route path="/" exact component={Home} />
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />

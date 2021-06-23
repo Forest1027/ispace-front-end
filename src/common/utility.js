@@ -33,3 +33,7 @@ export const updateObject = (oldObject, updatedProperties) => {
         ...updatedProperties
     }
 };
+
+export const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

@@ -3,10 +3,12 @@ import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
 import * as constants from '../common/Constants';
 import axios from "axios";
-import { Redirect } from "react-router";
+import ErrorModal from "../components/UI/ErrorModal";
 
 const Signup = (props) => {
-    const [credentialType] = useState(constants.SIGNUP)
+    const [credentialType] = useState(constants.SIGNUP);
+    const [open, setOpen] = useState(false);
+    const [registered, setRegistered] = useState(false);
     const [credentialItems, setCredentialItems] = useState({
         email: {
             value: '',
@@ -87,7 +89,7 @@ const Signup = (props) => {
             validation: {
             }
         },
-    })
+    });
 
     const [formIsValid, setFormIsValid] = useState(false);
     const [error, setError] = useState("");
@@ -114,7 +116,6 @@ const Signup = (props) => {
     };
 
     const onSubmitHandler = (event) => {
-        console.log("post: "+constants.USER_MANAGEMENT_BASE_URL + '​/userManagement​/v1​/users​/register')
         event.preventDefault();
         const userInfo =
         {
@@ -126,20 +127,32 @@ const Signup = (props) => {
         };
         axios.post('http://localhost:8090/userManagement/v1/users/register', userInfo)
             .then(res => {
-                props.history.push('/login')
+                setRegistered(true)
+                setTimeout(() => {
+                    props.history.push('/login')
+                }, 3000);
             })
             .catch(error => {
-                console.log(error)
-                setError(error.errorSummary);
+                var errorSummary = error.response.data.errorCauses
+                if (errorSummary !== null) {
+                    setError(errorSummary.map((sum) => sum['errorSummary']).join());
+                } else {
+                    setError(error.response.data.errorSummary);
+                }
+                setOpen(true);
             });
     };
 
     let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
         formData={credentialItems} formValid={formIsValid} formType={credentialType} />);
-
     return (
         <div>
-            {form}
+            <ErrorModal open={open} setOpen={setOpen} error={error} />
+            {!registered ? form : (<div>
+                <div>
+                    <h3>Successfully registered. Redirecting to login page...</h3>
+                </div>
+            </div>)}
         </div>
 
     );

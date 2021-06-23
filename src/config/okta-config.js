@@ -7,7 +7,7 @@ if (process.env.USE_INTERACTION_CODE === 'true') {
   USE_INTERACTION_CODE = true;
 }
 
-export default {
+const oktaConfig =  {
   oidc: {
     clientId: CLIENT_ID,
     issuer: ISSUER,
@@ -21,3 +21,5 @@ export default {
     messagesUrl: 'http://localhost:8000/api/messages',
   },
 };
+
+export default oktaConfig;
