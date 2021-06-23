@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
-import * as constants from '../common/LayoutConstants';
+import * as constants from '../common/Constants';
+import axios from "axios";
+import ErrorModal from "../components/UI/ErrorModal";
 
 const Signup = (props) => {
-    const [credentialType, setCredentialType] = useState(constants.SIGNUP)
+    const [credentialType] = useState(constants.SIGNUP);
+    const [open, setOpen] = useState(false);
+    const [registered, setRegistered] = useState(false);
     const [credentialItems, setCredentialItems] = useState({
         email: {
             value: '',
@@ -80,12 +84,15 @@ const Signup = (props) => {
             display: 'Nickame',
             placeholder: 'Nickame',
             touched: false,
-            valid: false,
+            valid: true,
             helpText: '',
+            validation: {
+            }
         },
-    })
+    });
 
     const [formIsValid, setFormIsValid] = useState(false);
+    const [error, setError] = useState("");
 
     const onInputChangeHandler = (event) => {
         const name = event.target.name;
@@ -100,26 +107,54 @@ const Signup = (props) => {
                 helpText: helpText
             })
         });
-        let formValid = false;
+        let formValid = true;
         for (let key in updatedObj) {
-            formValid = updatedObj[key].valid
+            formValid = formValid && updatedObj[key].valid
         }
         setCredentialItems(updatedObj);
         setFormIsValid(formValid);
     };
 
-    const onSubmitHandler = () => {
-        props.onSubmit(credentialItems.email.value, credentialItems.password.value);
+    const onSubmitHandler = (event) => {
+        event.preventDefault();
+        const userInfo =
+        {
+            firstName: credentialItems['firstName'].value,
+            lastName: credentialItems['lastName'].value,
+            nickName: credentialItems['nickName'].value,
+            password: credentialItems['password'].value,
+            email: credentialItems['email'].value
+        };
+        axios.post('http://localhost:8090/userManagement/v1/users/register', userInfo)
+            .then(res => {
+                setRegistered(true)
+                setTimeout(() => {
+                    props.history.push('/login')
+                }, 3000);
+            })
+            .catch(error => {
+                var errorSummary = error.response.data.errorCauses
+                if (errorSummary !== null) {
+                    setError(errorSummary.map((sum) => sum['errorSummary']).join());
+                } else {
+                    setError(error.response.data.errorSummary);
+                }
+                setOpen(true);
+            });
     };
 
     let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
-        formData={credentialItems} formValid={formIsValid} formType={credentialType}/>);
-
+        formData={credentialItems} formValid={formIsValid} formType={credentialType} />);
     return (
         <div>
-            {form}
+            <ErrorModal open={open} setOpen={setOpen} error={error} />
+            {!registered ? form : (<div>
+                <div>
+                    <h3>Successfully registered. Redirecting to login page...</h3>
+                </div>
+            </div>)}
         </div>
-        
+
     );
 };
 

@@ -7,7 +7,7 @@ import Home from './containers/Home';
 import Login from './containers/Login';
 import Navbar from './components/UI/NavBar';
 import Container from '@material-ui/core/Container';
-import * as layoutConstants from "./common/LayoutConstants";
+import * as layoutConstants from "./common/Constants";
 import Signup from './containers/Signup';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -31,7 +31,7 @@ const App = () => {
     history.replace(toRelativeUrl(originalUri, window.location.origin));
   };
 
-  const customAuthHandler = () => {
+  const login = () => {
     // Redirect to the /login page that has a CustomLoginComponent
     history.push('/login');
   };
@@ -53,10 +53,10 @@ const App = () => {
     history.push("/signup");
   }
 
-  const [navItems, setNavItems] = useState({
+  const [navItems] = useState({
     "Login": {
       "isAuth": false,
-      "clicked": customAuthHandler,
+      "clicked": login,
       "icon": layoutConstants.LOGIN_ICON
     },
     "Signup": {
@@ -74,11 +74,11 @@ const App = () => {
   return (
     <Security
       oktaAuth={oktaAuth}
-      onAuthRequired={customAuthHandler}
+      onAuthRequired={login}
       restoreOriginalUri={restoreOriginalUri}
     >
       <Navbar navItems={{ ...navItems }} />
-      <Container text className={classes.root}>
+      <Container className={classes.root}>
         <Switch>
           <Route path="/" exact component={Home} />
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />

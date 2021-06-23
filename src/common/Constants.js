@@ -15,3 +15,5 @@ export const MY_PROFILE_ICON='AccountBoxIcon';
 export const LOGIN_ICON='VpnKeyIcon';
 export const SIGNUP_ICON='LockIcon';
 export const LOGOUT_ICON='ExitToAppIcon';
+
+export const USER_MANAGEMENT_BASE_URL='http://localhost:8090'
