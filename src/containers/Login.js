@@ -4,10 +4,12 @@ import '@okta/okta-signin-widget/dist/css/okta-sign-in.min.css';
 import { checkValidity, updateObject } from "../common/utility";
 import CredentialForm from "../components/Auth/CredentialForm";
 import * as constants from '../common/Constants';
+import ErrorModal from "../components/UI/ErrorModal";
 
 const Login = () => {
   const { oktaAuth } = useOktaAuth();
   const [sessionToken, setSessionToken] = useState();
+  const [open, setOpen] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [credentialType] = useState(constants.LOGIN)
@@ -43,6 +45,7 @@ const Login = () => {
   })
 
   const [formIsValid, setFormIsValid] = useState(false);
+  const [error, setError] = useState("");
 
   const onInputChangeHandler = (event) => {
     const name = event.target.name;
@@ -81,11 +84,15 @@ const Login = () => {
         // sessionToken is a one-use token, so make sure this is only called once
         oktaAuth.signInWithRedirect({ sessionToken });
       })
-      .catch(err => console.log('Found an error', err));
+      .catch(error => {
+        setError("Username or password is wrong.");
+        
+        setOpen(true);
+      });
   };
 
   let form = (<CredentialForm changed={onInputChangeHandler} submitted={onSubmitHandler}
-    formData={credentialItems} formValid={formIsValid} formType={credentialType}/>);
+    formData={credentialItems} formValid={formIsValid} formType={credentialType} />);
 
   if (sessionToken) {
     // Hide form while sessionToken is converted into id/access tokens
@@ -94,6 +101,7 @@ const Login = () => {
 
   return (
     <div>
+      <ErrorModal open={open} setOpen={setOpen} error={error} />
       {form}
     </div>
 

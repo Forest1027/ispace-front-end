@@ -20,10 +20,6 @@ const useStyles = makeStyles((theme) => ({
 const ErrorModal = (props) => {
   const classes = useStyles();
 
-  const handleOpen = () => {
-    props.setOpen(true);
-  };
-
   const handleClose = () => {
     props.setOpen(false);
   };
@@ -44,7 +40,7 @@ const ErrorModal = (props) => {
       >
         <Fade in={props.open}>
           <div className={classes.paper}>
-            <h2 id="transition-modal-title">Please try again later</h2>
+            <h3 id="transition-modal-title">Please try again later</h3>
             <p id="transition-modal-description">{props.error}</p>
           </div>
         </Fade>

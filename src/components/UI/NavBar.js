@@ -48,12 +48,18 @@ const NavBar = (props) => {
     <div className={classes.root}>
       <AppBar position="static" color="primary">
         <Toolbar>
-          <IconButton color="secondary">
-            {matches ? <DeckIcon onClick={() => {history.push('/')}}/> : <MenuIcon onClick={props.open} />}
-          </IconButton>
+          {
+            matches ?
+              (<IconButton color="secondary" onClick={() => { history.push('/') }}>
+                <DeckIcon />
+              </IconButton>) :
+              (<IconButton color="secondary" onClick={props.open}>
+                <MenuIcon />
+              </IconButton>)
+          }
           <Typography variant="h6" className={classes.title}>
           </Typography>
-          {matches ? navButtons : <DeckIcon position="flex-end" color="secondary"/>}
+          {matches ? navButtons : <DeckIcon position="flex-end" color="secondary" />}
         </Toolbar>
       </AppBar>
     </div>
