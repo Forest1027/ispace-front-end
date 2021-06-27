@@ -5,6 +5,8 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
+import axios from "axios";
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -41,10 +43,30 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const useConstructor = (callBack = () => {}) => {
+  const [hasBeenCalled, setHasBeenCalled] = useState(false);
+  if (hasBeenCalled) return;
+  callBack();
+  setHasBeenCalled(true);
+}
+
+
 const Home = () => {
   const classes = useStyles();
   const { authState, oktaAuth } = useOktaAuth();
   const [userInfo, setUserInfo] = useState(null);
+  const [articleItems, setArticleItems] = useState([]);
+
+  useConstructor(() => {
+    axios.get("http://localhost:8080/articleManagement/articleDetails")
+      .then(res => {
+        setArticleItems(res.data._embedded.articleDetails);
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  });
+  
 
   useEffect(() => {
     if (!authState.isAuthenticated) {
@@ -109,97 +131,47 @@ const Home = () => {
         <div className={classes.sectionRoot}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={8}>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
-              <div className={classes.itemRoot}>
-                <div>
-                  <Typography variant="h6" component="h2">
-                    Why I’m Leaving Mumford & Sons
-                  </Typography>
-                  <Typography className={classes.pos} color="textSecondary">
-                    Winston Marshall
-                  </Typography>
-                  <Typography variant="body2" component="p">
-                    well meaning and kindly.
-                  </Typography>
-                </div>
-              </div>
+              {/* <InfiniteScroll
+                dataLength={items.length} //This is important field to render the next data
+                next={fetchData}
+                hasMore={true}
+                loader={<h4>Loading...</h4>}
+                endMessage={
+                  <p style={{ textAlign: 'center' }}>
+                    <b>Yay! You have seen it all</b>
+                  </p>
+                }
+                // below props only if you need pull down functionality
+                refreshFunction={this.refresh}
+                pullDownToRefresh
+                pullDownToRefreshThreshold={50}
+                pullDownToRefreshContent={
+                  <h3 style={{ textAlign: 'center' }}>&#8595; Pull down to refresh</h3>
+                }
+                releaseToRefreshContent={
+                  <h3 style={{ textAlign: 'center' }}>&#8593; Release to refresh</h3>
+                }
+              >
+                {items}
+              </InfiniteScroll> */}
+              {articleItems.map(element => {
+                console.log(element);
+                return (
+                  <div className={classes.itemRoot} key={element}>
+                    <div>
+                      <Typography variant="h6" component="h2">
+                        {element.title}
+                      </Typography>
+                      <Typography className={classes.pos} color="textSecondary">
+                        {element.description}
+                      </Typography>
+                      <Typography variant="body2" component="p">
+                        {element.updateTime}
+                      </Typography>
+                    </div>
+                  </div>
+                )
+              })}
             </Grid>
             <Grid item xs={12} sm={4}>
               <div className={classes.categoryRoot}>
