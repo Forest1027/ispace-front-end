@@ -7,6 +7,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
 import axios from "axios";
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { convertDateToLocal } from '../common/utility';
+import { NavLink } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -26,6 +28,9 @@ const useStyles = makeStyles((theme) => ({
       color: 'grey',
     },
   },
+  articleItemIntros: {
+    flexGrow: 1,
+  },
   divider: {
     marginTop: "50px",
     marginBottom: "20px"
@@ -41,9 +46,13 @@ const useStyles = makeStyles((theme) => ({
   pos: {
     marginBottom: 12,
   },
+  link: {
+    textDecoration: 'none',
+    color: theme.palette.text.secondary,
+  },
 }));
 
-const useConstructor = (callBack = () => {}) => {
+const useConstructor = (callBack = () => { }) => {
   const [hasBeenCalled, setHasBeenCalled] = useState(false);
   if (hasBeenCalled) return;
   callBack();
@@ -58,15 +67,15 @@ const Home = () => {
   const [articleItems, setArticleItems] = useState([]);
 
   useConstructor(() => {
-    axios.get("http://localhost:8080/articleManagement/articleDetails")
+    axios.get("http://localhost:8080/articleManagement/v1/articles?pageNumber=1&pageSize=10")
       .then(res => {
-        setArticleItems(res.data._embedded.articleDetails);
+        setArticleItems(res.data);
       })
       .catch(error => {
         console.log(error)
       })
   });
-  
+
 
   useEffect(() => {
     if (!authState.isAuthenticated) {
@@ -157,18 +166,31 @@ const Home = () => {
               {articleItems.map(element => {
                 console.log(element);
                 return (
-                  <div className={classes.itemRoot} key={element}>
-                    <div>
-                      <Typography variant="h6" component="h2">
-                        {element.title}
-                      </Typography>
-                      <Typography className={classes.pos} color="textSecondary">
-                        {element.description}
-                      </Typography>
-                      <Typography variant="body2" component="p">
-                        {element.updateTime}
-                      </Typography>
-                    </div>
+                  <div className={classes.itemRoot} key={element.id}>
+                    <NavLink className={classes.link} to='/articleDetail'>
+                      <div>
+                        <Typography variant="h6" component="h2" color="primary">
+                          {element.title}
+                        </Typography>
+                        <Typography className={classes.pos} color="textSecondary">
+                          {element.description}
+                        </Typography>
+                        <div>
+                          <Grid container className={classes.articleItemIntros}>
+                            <Grid item xs={12} sm={2}>
+                              <Typography variant="body2" component="p">
+                                {element.authorName}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                              <Typography variant="body2" component="p">
+                                {convertDateToLocal(element.updateTime)}
+                              </Typography>
+                            </Grid>
+                          </Grid>
+                        </div>
+                      </div>
+                    </NavLink>
                   </div>
                 )
               })}
@@ -191,7 +213,7 @@ const Home = () => {
           </Grid>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 export default Home;

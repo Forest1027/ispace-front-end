@@ -37,3 +37,12 @@ export const updateObject = (oldObject, updatedProperties) => {
 export const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export const convertDateToLocal = (dateStr) => {
+    const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const date = new Date(dateStr)
+    const result = date.toLocaleString("en-US", {timeZone: localTimeZone});
+    console.log(localTimeZone);
+    console.log(result);
+    return result;
+}
