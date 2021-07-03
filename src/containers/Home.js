@@ -65,15 +65,25 @@ const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
   const [userInfo, setUserInfo] = useState(null);
   const [articleItems, setArticleItems] = useState([]);
+  const [articleCategories, setArticleCategories] = useState([]);
 
   useConstructor(() => {
-    axios.get("http://localhost:8080/articleManagement/v1/articles?pageNumber=1&pageSize=10")
+    axios.get("http://localhost:8080/articleManagement/v1/articles?page=1&size=10")
       .then(res => {
         setArticleItems(res.data);
       })
       .catch(error => {
         console.log(error)
+      });
+
+    axios.get("http://localhost:8080/articleManagement/v1/articleCategories?page=1&size=10")
+      .then(res => {
+        setArticleCategories(res.data);
       })
+      .catch(error => {
+        console.log(error)
+      });
+
   });
 
 
@@ -164,7 +174,6 @@ const Home = () => {
                 {items}
               </InfiniteScroll> */}
               {articleItems.map(element => {
-                console.log(element);
                 return (
                   <div className={classes.itemRoot} key={element.id}>
                     <NavLink className={classes.link} to='/articleDetail'>
@@ -196,6 +205,7 @@ const Home = () => {
               })}
             </Grid>
             <Grid item xs={12} sm={4}>
+
               <div className={classes.categoryRoot}>
                 <div>
                   <Typography variant="button">
@@ -203,10 +213,9 @@ const Home = () => {
                   </Typography>
                 </div>
                 <div className={classes.categoryButtons}>
-                  <Button variant="outlined">Self</Button>
-                  <Button variant="outlined">Relationship</Button>
-                  <Button variant="outlined">Career</Button>
-                  <Button variant="outlined">Travel</Button>
+                  {articleCategories.map(element => {
+                    return (<Button variant="outlined" key={element.id}>{element.categoryName}</Button>)
+                  })}
                 </div>
               </div>
             </Grid>
