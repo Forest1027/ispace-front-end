@@ -12,6 +12,7 @@ import Signup from './containers/Signup';
 import { makeStyles } from '@material-ui/core/styles';
 
 import './App.css';
+import ArticleDetail from './containers/ArticleDetail';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -84,6 +85,7 @@ const App = () => {
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />
           <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={Signup} />
+          <Route path="/:user/:articleId" exact component={ArticleDetail} />
         </Switch>
       </Container>
     </Security>

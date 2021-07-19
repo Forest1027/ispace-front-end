@@ -125,7 +125,7 @@ const Signup = (props) => {
             password: credentialItems['password'].value,
             email: credentialItems['email'].value
         };
-        axios.post('http://localhost:8090/userManagement/v1/users/register', userInfo)
+        axios.post('http://localhost:8080/userManagement/v1/users/register', userInfo)
             .then(res => {
                 setRegistered(true)
                 setTimeout(() => {

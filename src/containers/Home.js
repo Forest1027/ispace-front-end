@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
 import axios from "axios";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { convertDateToLocal } from '../common/utility';
+import { convertDateToLocal, replaceSpaceWithDashInStr } from '../common/utility';
 import { NavLink } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
@@ -176,7 +176,7 @@ const Home = () => {
               {articleItems.map(element => {
                 return (
                   <div className={classes.itemRoot} key={element.id}>
-                    <NavLink className={classes.link} to='/articleDetail'>
+                    <NavLink className={classes.link} to={'/' + replaceSpaceWithDashInStr(element.authorName) + "/" + replaceSpaceWithDashInStr(element.title) + "-" + element.id}>
                       <div>
                         <Typography variant="h6" component="h2" color="primary">
                           {element.title}
