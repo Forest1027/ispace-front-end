@@ -1,14 +1,14 @@
 import { useOktaAuth } from '@okta/okta-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Divider from '@material-ui/core/Divider';
 import axios from "axios";
-import InfiniteScroll from 'react-infinite-scroll-component';
 import { convertDateToLocal, replaceSpaceWithDashInStr } from '../common/utility';
 import { NavLink } from 'react-router-dom';
+import useSearchArticles from '../hooks/useSearchArticles';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -64,18 +64,24 @@ const Home = () => {
   const classes = useStyles();
   const { authState, oktaAuth } = useOktaAuth();
   const [userInfo, setUserInfo] = useState(null);
-  const [articleItems, setArticleItems] = useState([]);
   const [articleCategories, setArticleCategories] = useState([]);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const { loading, error, articles, hasMore } = useSearchArticles(query, page);
+
+  const observer = useRef();
+  const lastArticleElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prev) => prev + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
 
   useConstructor(() => {
-    axios.get("http://localhost:8080/articleManagement/v1/articles?page=1&size=10")
-      .then(res => {
-        setArticleItems(res.data);
-      })
-      .catch(error => {
-        console.log(error)
-      });
-
     axios.get("http://localhost:8080/articleManagement/v1/articleCategories?page=1&size=10")
       .then(res => {
         setArticleCategories(res.data);
@@ -85,7 +91,6 @@ const Home = () => {
       });
 
   });
-
 
   useEffect(() => {
     if (!authState.isAuthenticated) {
@@ -150,32 +155,9 @@ const Home = () => {
         <div className={classes.sectionRoot}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={8}>
-              {/* <InfiniteScroll
-                dataLength={items.length} //This is important field to render the next data
-                next={fetchData}
-                hasMore={true}
-                loader={<h4>Loading...</h4>}
-                endMessage={
-                  <p style={{ textAlign: 'center' }}>
-                    <b>Yay! You have seen it all</b>
-                  </p>
-                }
-                // below props only if you need pull down functionality
-                refreshFunction={this.refresh}
-                pullDownToRefresh
-                pullDownToRefreshThreshold={50}
-                pullDownToRefreshContent={
-                  <h3 style={{ textAlign: 'center' }}>&#8595; Pull down to refresh</h3>
-                }
-                releaseToRefreshContent={
-                  <h3 style={{ textAlign: 'center' }}>&#8593; Release to refresh</h3>
-                }
-              >
-                {items}
-              </InfiniteScroll> */}
-              {articleItems.map(element => {
-                return (
-                  <div className={classes.itemRoot} key={element.id}>
+              <div>
+                {articles.map((element, index) => {
+                  const content = (
                     <NavLink className={classes.link} to={'/' + replaceSpaceWithDashInStr(element.authorName) + "/" + replaceSpaceWithDashInStr(element.title) + "-" + element.id}>
                       <div>
                         <Typography variant="h6" component="h2" color="primary">
@@ -200,9 +182,27 @@ const Home = () => {
                         </div>
                       </div>
                     </NavLink>
-                  </div>
-                )
-              })}
+                  );
+                  if (articles.length === index + 1) {
+                    return (
+                      <div className={classes.itemRoot} key={element.id} ref={lastArticleElementRef}>
+                        {content}
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div className={classes.itemRoot} key={element.id}>
+                        {content}
+                      </div>
+                    )
+                  }
+
+                })}
+              </div>
+              {loading ? <div >Loading...</div> : null}
+              {error ? <div>error</div> : null}
+
+
             </Grid>
             <Grid item xs={12} sm={4}>
 
