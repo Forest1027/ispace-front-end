@@ -9,6 +9,7 @@ import axios from "axios";
 import { convertDateToLocal, replaceSpaceWithDashInStr } from '../common/utility';
 import { NavLink } from 'react-router-dom';
 import useSearchArticles from '../hooks/useSearchArticles';
+import useConstructor from '../hooks/useConstructor';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -51,14 +52,6 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.text.secondary,
   },
 }));
-
-const useConstructor = (callBack = () => { }) => {
-  const [hasBeenCalled, setHasBeenCalled] = useState(false);
-  if (hasBeenCalled) return;
-  callBack();
-  setHasBeenCalled(true);
-}
-
 
 const Home = () => {
   const classes = useStyles();
@@ -200,7 +193,7 @@ const Home = () => {
                 })}
               </div>
               {loading ? <div >Loading...</div> : null}
-              {error ? <div>error</div> : null}
+              {error ? <div>Error occurs, please try again later.</div> : null}
 
 
             </Grid>

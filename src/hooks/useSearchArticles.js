@@ -22,6 +22,7 @@ const useSearchArticles = (query, page) => {
                     setHasMore(res.data.length > 0);
                     setLoading(false);
                }).catch(error => {
+                    setLoading(false);
                     setError(error);
                });
      }, [query, page]);
