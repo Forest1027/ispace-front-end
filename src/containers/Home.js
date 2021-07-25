@@ -10,6 +10,8 @@ import { convertDateToLocal, replaceSpaceWithDashInStr } from '../common/utility
 import { NavLink } from 'react-router-dom';
 import useSearchArticles from '../hooks/useSearchArticles';
 import useConstructor from '../hooks/useConstructor';
+import MyEditor from '../components/Articles/MyEditor';
+import ArticleList from '../components/Articles/ArticleList';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -53,26 +55,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Home = () => {
+const Home = (props) => {
   const classes = useStyles();
   const { authState, oktaAuth } = useOktaAuth();
   const [userInfo, setUserInfo] = useState(null);
   const [articleCategories, setArticleCategories] = useState([]);
   const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const { loading, error, articles, hasMore } = useSearchArticles(query, page);
-
-  const observer = useRef();
-  const lastArticleElementRef = useCallback(node => {
-    if (loading) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage((prev) => prev + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [loading, hasMore]);
+  const url = "http://localhost:8080/articleManagement/v1/articles"
 
   useConstructor(() => {
     axios.get("http://localhost:8080/articleManagement/v1/articleCategories?page=1&size=10")
@@ -96,15 +85,6 @@ const Home = () => {
     }
   }, [authState, oktaAuth]); // Update if authState changes
 
-  const logout = async () => {
-    try {
-      await oktaAuth.signOut();
-    } catch (err) {
-
-      throw err;
-
-    }
-  };
 
   if (authState.isPending) {
     return (
@@ -131,7 +111,7 @@ const Home = () => {
               <p>
                 You have successfully authenticated against your Okta org, and have been redirected back to this application.  You now have an ID token and access token in local storage.
               </p>
-              <Button id="logout-button" variant="outlined" color="secondary" onClick={logout}>Logout</Button>
+              {/* <Button id="logout-button" variant="outlined" color="secondary" onClick={logout}>Logout</Button> */}
             </div>
           )}
 
@@ -143,59 +123,13 @@ const Home = () => {
           )}
 
       </div>
+      <MyEditor />
       <Divider className={classes.divider} />
       <div>
         <div className={classes.sectionRoot}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={8}>
-              <div>
-                {articles.map((element, index) => {
-                  const content = (
-                    <NavLink className={classes.link} to={'/' + replaceSpaceWithDashInStr(element.authorName) + "/" + replaceSpaceWithDashInStr(element.title) + "-" + element.id}>
-                      <div>
-                        <Typography variant="h6" component="h2" color="primary">
-                          {element.title}
-                        </Typography>
-                        <Typography className={classes.pos} color="textSecondary">
-                          {element.description}
-                        </Typography>
-                        <div>
-                          <Grid container className={classes.articleItemIntros}>
-                            <Grid item xs={12} sm={2}>
-                              <Typography variant="body2" component="p">
-                                {element.authorName}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                              <Typography variant="body2" component="p">
-                                {convertDateToLocal(element.updateTime)}
-                              </Typography>
-                            </Grid>
-                          </Grid>
-                        </div>
-                      </div>
-                    </NavLink>
-                  );
-                  if (articles.length === index + 1) {
-                    return (
-                      <div className={classes.itemRoot} key={element.id} ref={lastArticleElementRef}>
-                        {content}
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div className={classes.itemRoot} key={element.id}>
-                        {content}
-                      </div>
-                    )
-                  }
-
-                })}
-              </div>
-              {loading ? <div >Loading...</div> : null}
-              {error ? <div>Error occurs, please try again later.</div> : null}
-
-
+              <ArticleList url={url} query={query}/>
             </Grid>
             <Grid item xs={12} sm={4}>
 

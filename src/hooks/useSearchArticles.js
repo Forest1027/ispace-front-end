@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
-const useSearchArticles = (query, page) => {
+const useSearchArticles = (query, page, url) => {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState(false);
      const [articles, setArticles] = useState([]);
@@ -14,7 +14,7 @@ const useSearchArticles = (query, page) => {
      useEffect(() => {
           setLoading(true);
           setError(false);
-          axios.get(`http://localhost:8080/articleManagement/v1/articles?page=${page}&size=2`)
+          axios.get(`${url}?page=${page}&size=10&search=${query}`)
                .then(res => {
                     setArticles(prev => {
                          return [...new Set([...prev, ...res.data])];
@@ -25,7 +25,7 @@ const useSearchArticles = (query, page) => {
                     setLoading(false);
                     setError(error);
                });
-     }, [query, page]);
+     }, [query, page,url]);
 
      return {loading, error, articles, hasMore};
 }

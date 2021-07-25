@@ -6,6 +6,7 @@ import { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import { convertDateToLocal } from '../common/utility';
+import DOMPurify from "dompurify";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -74,9 +75,7 @@ const ArticleView = (props) => {
                     <div><p><i>{article.description}</i></p></div>
                 </Box>
                 <Box className={classes.content} justifyContent="flex-start">
-                    <div>
-                        {article.content}
-                    </div>
+                    <div dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(article.content)}}/>
                 </Box>
             </Box>
             {loading ? <div >Loading...</div> : null}
