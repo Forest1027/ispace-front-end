@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 
 import Editor, { createEditorStateWithText } from '@draft-js-plugins/editor';
 import '@draft-js-plugins/static-toolbar/lib/plugin.css';
-import { convertToRaw } from 'draft-js';
-import { stateToHTML } from "draft-js-export-html";
+import { convertToRaw, EditorState } from 'draft-js';
+
 
 import createToolbarPlugin, {
   Separator,
@@ -19,7 +19,6 @@ import {
   UnorderedListButton,
   OrderedListButton,
   BlockquoteButton,
-  CodeBlockButton,
   
 } from '@draft-js-plugins/buttons';
 import editorStyles from './editorStyles.module.css';
@@ -78,25 +77,6 @@ const text =
   'In this editor a toolbar shows up once you select part of the text …';
 
 export default class MyEditor extends Component {
-  state = {
-    editorState: createEditorStateWithText(text),
-  };
-
-  onChange = (editorState) => {
-    console.log(JSON.stringify(stateToHTML(editorState.getCurrentContent())))
-
-    this.setState({
-      editorState,
-    });
-  };
-
-  componentDidMount() {
-    // fixing issue with SSR https://github.com/facebook/draft-js/issues/2332#issuecomment-761573306
-    // eslint-disable-next-line react/no-did-mount-set-state
-    this.setState({
-      editorState: createEditorStateWithText(text),
-    });
-  }
 
   focus = () => {
     this.editor.focus();
@@ -108,9 +88,9 @@ export default class MyEditor extends Component {
       <div>
         <div className={editorStyles.editor} onClick={this.focus}>
           <Editor
-            readOnly = {true}
-            editorState={this.state.editorState}
-            onChange={this.onChange}
+            name="content"
+            editorState={this.props.editorState}
+            onChange={this.props.onChange}
             plugins={plugins}
             ref={(element) => {
               this.editor = element;
@@ -130,7 +110,6 @@ export default class MyEditor extends Component {
                   <UnorderedListButton {...externalProps} />
                   <OrderedListButton {...externalProps} />
                   <BlockquoteButton {...externalProps} />
-                  <CodeBlockButton {...externalProps} />
                 </div>
               )
             }

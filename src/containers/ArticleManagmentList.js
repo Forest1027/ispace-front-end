@@ -1,12 +1,27 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import ArticleList from "../components/Articles/ArticleList"
+import React, { useState, useEffect, useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
 import { DataGrid } from '@material-ui/data-grid';
 import { useOktaAuth } from '@okta/okta-react';
-import { useSearchArticles } from '../hooks/useSearchArticles';
 import { convertDateToLocal } from '../common/utility';
 import axios from "axios";
+import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles';
+import * as constants from '../common/Constants'
+
+const useStyles = makeStyles((theme) => ({
+    categoryRoot: {
+        marginTop: "30px",
+        marginBottom: "20px",
+    },
+    categoryButtons: {
+        '& > *': {
+            margin: theme.spacing(1),
+        },
+    },
+}));
 
 const ArticleManagementList = () => {
+    const classes = useStyles();
     const { authState, oktaAuth } = useOktaAuth();
     const [userInfo, setUserInfo] = useState(null);
     const [query, setQuery] = useState("");
@@ -16,6 +31,7 @@ const ArticleManagementList = () => {
     const [articles, setArticles] = useState([]);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
+    const history = useHistory();
 
     const url = "http://localhost:8080/articleManagement/v1/articles"
 
@@ -37,10 +53,11 @@ const ArticleManagementList = () => {
         axios.get(`${url}?page=${page}&size=${size}&search=${query}`)
             .then(res => {
                 setArticles(prev => {
-                    res.data.map(ele => {
+                    res.data.map((ele, index) => {
                         ele.category = ele.articleCategory.categoryName;
                         ele.createTime = convertDateToLocal(ele.createTime);
                         ele.updateTime = convertDateToLocal(ele.updateTime);
+                        ele.columnId = (page - 1) * size + index + 1;
                         return ele;
                     })
                     return [...new Set([...res.data])];
@@ -66,35 +83,84 @@ const ArticleManagementList = () => {
         }
     }, [authState, oktaAuth, fetchArticles, fetchArticleCount, count]);
 
+    const onEditHandler = (articleId) => {
+        history.push({
+            pathname: '/articleDetail',
+            state: {
+                mode: constants.MODE_EDIT,
+                articleId: articleId,
+                author: userInfo.email
+            }
+        });
+    }
+
+    const onCreateHandler = () => {
+        history.push({
+            pathname: '/articleDetail',
+            state: {
+                mode: constants.MODE_CREATE
+            }
+        });
+    }
+
+    const onDeleteHandler = (articleId) => {
+
+    }
+
+    const onBulkDeleteHandler = (articleIds) => {
+
+    }
+
+    const renderButtons = (params) => {
+        return (
+            <div>
+                <Button color="secondary" onClick={() => onEditHandler(params.row.id)}>Edit</Button>
+                <Button color="primary" onClick={onDeleteHandler}>Delete</Button>
+            </div>
+        );
+    }
+
 
 
     const columns = [
-        { field: 'id', headerName: 'ID', width: 90 },
-        { field: 'title', headerName: 'Title', width: 400 },
+        { field: 'columnId', headerName: 'ID', width: 90 },
+        { field: 'title', headerName: 'Title', width: 300 },
         {
             field: 'category',
             headerName: 'Category',
-            width: 200,
-            editable: true,
+            width: 150,
+            editable: false,
         },
         {
             field: 'createTime',
             headerName: 'Create time',
             width: 200,
-            editable: true,
+            editable: false,
         },
         {
             field: 'updateTime',
             headerName: 'Update time',
             width: 200,
-            editable: true,
+            editable: false,
         },
+        {
+            field: 'action',
+            headerName: 'Actions',
+            width: 200,
+            renderCell: renderButtons,
+        }
     ];
 
     return (
         <div>
             <div>
                 <h1>Manage My Articles</h1>
+            </div>
+            <div className={classes.categoryRoot}>
+                <div className={classes.categoryButtons}>
+                    <Button variant="outlined" color="secondary" onClick={onCreateHandler}>Create</Button>
+                    <Button variant="outlined" color="primary">Delete</Button>
+                </div>
             </div>
             <div style={{ height: 400, width: '100%' }}>
                 <DataGrid

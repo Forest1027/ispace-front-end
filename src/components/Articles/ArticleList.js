@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Button from '@material-ui/core/Button';
+import React, { useState, useRef, useCallback } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -82,12 +81,12 @@ const ArticleList = (props) => {
                                     </Typography>
                                     <div>
                                         <Grid container className={classes.articleItemIntros}>
-                                            <Grid item xs={12} sm={2}>
+                                            <Grid item xs={3} sm={2}>
                                                 <Typography variant="body2" component="p">
                                                     {element.authorName}
                                                 </Typography>
                                             </Grid>
-                                            <Grid item xs={12} sm={4}>
+                                            <Grid item xs={2} sm={2}>
                                                 <Typography variant="body2" component="p">
                                                     {convertDateToLocal(element.updateTime)}
                                                 </Typography>

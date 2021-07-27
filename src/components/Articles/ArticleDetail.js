@@ -1,9 +1,15 @@
-import React from "react";
-import Box from "@material-ui/core/Box";
-import Button from "@material-ui/core/Button";
+import React, { useState } from "react";
 import TextField from "@material-ui/core/TextField";
 import { makeStyles } from '@material-ui/core/styles';
-import {NavLink} from "react-router-dom";
+import MyEditor from "./MyEditor";
+import { EditorState } from 'draft-js';
+import { stateToHTML } from "draft-js-export-html";
+import { Button } from "@material-ui/core";
+import * as constants from '../../common/Constants';
+import useConstructor from "../../hooks/useConstructor";
+import axios from "axios";
+import { createEditorStateWithText } from '@draft-js-plugins/editor';
+import { stateFromHTML } from 'draft-js-import-html'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -16,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(1),
     },
     editor: {
-        marginTop: theme.spacing(5),
+        marginTop: theme.spacing(8),
     },
     cancelButton: {
         borderColor: '#660033',
@@ -26,12 +32,7 @@ const useStyles = makeStyles((theme) => ({
         textAlign: 'left',
         marginRight: theme.spacing(1),
     },
-    editButton: {
-        backgroundColor: '#660033',
-        color: 'white',
-        width: 80,
-        height: '100%',
-        textAlign: 'left',
+    button: {
         marginRight: theme.spacing(1),
     },
     buttonBox: {
@@ -47,78 +48,81 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const ArticleDetail = () => {
+const ArticleDetail = (props) => {
     const classes = useStyles();
-    let articleDetail = (
-        <Box justifyContent="flex-start" width='80%'>
-            <form className={classes.root} noValidate autoComplete="off" onSubmit={this.createArticleHandler}>
-                <Box className={classes.buttonBox}>
-                    {this.props.readOnly ?
-                        <Button className={classes.editButton} variant="contained"
-                                onClick={this.props.onEditClicked}>Edit</Button>
-                        : (
-                            this.props.articleForm.articleId !== '' ?
-                                (<div>
-                                    <Button className={classes.editButton} variant="contained"
-                                            onClick={this.updateArticleHandler}
-                                            disabled={!this.props.formIsValid}>Update</Button>
-                                    <Button className={classes.cancelButton}
-                                            variant="outlined"
-                                            onClick={this.props.onUpdateCancelClicked}>Cancel</Button>
-                                </div>)
-                                : (<div>
-                                    <Button className={classes.editButton} variant="contained"
-                                            onClick={this.createArticleHandler}
-                                            disabled={!this.props.formIsValid}>Create</Button>
-                                    <NavLink className={classes.link} to='/articles'> <Button
-                                        className={classes.cancelButton}
-                                        variant="outlined">Cancel</Button></NavLink>
-                                </div>))
-                    }
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [content, setContent] = useState("");
+    const [editorState, setEditorState] = useState(createEditorStateWithText(""));
+    const [isLoading, setIsLoading] = useState(true);
 
-                </Box>
-                <Box className={classes.title}>
-                    <TextField id="standard-basic" label="Title" fullWidth name="title"
-                               onChange={this.inputChangeHandler} defaultValue={this.props.articleForm.title}
-                               inputProps={{readOnly: this.props.readOnly}}
-                               error={!this.state.validation.title.valid && this.state.validation.title.touched}
-                               helperText={(!this.state.validation.title.valid && this.state.validation.title.touched) ? "Cannot be empty" : ""}/>
-                </Box>
-                <Box>
-                    <TextField id="standard-basic" label="One line description" fullWidth name="description"
-                               onChange={this.inputChangeHandler}
-                               defaultValue={this.props.articleForm.description}
-                               inputProps={{readOnly: this.props.readOnly}}
-                               error={!this.state.validation.description.valid && this.state.validation.description.touched}
-                               helperText={(!this.state.validation.title.valid && this.state.validation.title.touched) ? "Cannot be empty" : ""}/>
-                </Box>
-                {/* <Box className={classes.editor}>
-                    <CKEditor
-                        data={this.props.articleForm.content}
-                        editor={ClassicEditor}
-                        config={{
-                            removePlugins: ["ImageUpload"],
-                        }}
-                        onReady={editor => {
-                            if (editor !== null) {
-                                editor.isReadOnly = this.props.readOnly;
-                                this.props.onInitEditor(editor);
-                            }
-                        }}
-                        onChange={this.editorInputChangeHandler}
-                        onBlur={(event, editor) => {
-                            console.log('Blur.', editor);
-                        }}
-                        onFocus={(event, editor) => {
-                            console.log('Focus.', editor);
-                        }}
-                    />
-                </Box> */}
-            </form>
-        </Box>
-    );
+    useConstructor(() => {
+        axios.get(`http://localhost:8080/articleManagement/v1/articles/${props.location.state.articleId}`)
+            .then(res => {
+                setTitle(res.data.title);
+                setDescription(res.data.description);
+                setContent(res.data.content);
+                setEditorState(EditorState.createWithContent(stateFromHTML(res.data.content)))
+                setIsLoading(false);
+            })
+            .catch(error => {
+                setIsLoading(false);
+                console.log(error)
+            });
+
+    });
+
+    const onChangeHandler = (e) => {
+        console.log(e.target.name);
+        const name = e.target.name
+        if (name === "title") {
+            setTitle(e.target.value);
+        } else if (name === "description") {
+            setDescription(e.target.value);
+        }
+    }
+    const onEditorChangeHandler = (editorState) => {
+        setEditorState(editorState);
+        setContent(JSON.stringify(stateToHTML(editorState.getCurrentContent())));
+    }
     return (
-        <div>articel detail</div>
+        <div>
+            {isLoading ?
+                <div>Loading...</div> :
+                (<div>
+                    <form className={classes.root} noValidate autoComplete="off">
+                        <div>
+                            {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} >Create</Button> : null}
+                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} >Update</Button> : null}
+                            <Button variant="outlined" color="primary" className={classes.button}>Cancel</Button>
+                        </div>
+                        <div>
+                            <TextField id="standard-basic" label="Title" fullWidth name="title" onChange={onChangeHandler} value={title} />
+                        </div>
+                        <div>
+                            <TextField
+                                id="standard-textarea"
+                                label="Description"
+                                name="description"
+                                fullWidth
+                                multiline
+                                onChange={onChangeHandler}
+                                value={description}
+
+                            />
+                        </div>
+                        <div className={classes.editor}>
+                            <MyEditor onChange={onEditorChangeHandler} editorState={editorState} />
+                        </div>
+                    </form>
+
+                    {props.location.state.articleId}
+                </div>)}
+
+            <div>
+                {props.location.state.author}
+            </div>
+        </div>
     )
 };
 

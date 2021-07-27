@@ -42,7 +42,8 @@ export const convertDateToLocal = (dateStr) => {
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const date = new Date(dateStr)
     const result = date.toLocaleString("en-US", {timeZone: localTimeZone});
-    return result;
+    const arr = result.split(",");
+    return arr[0];
 }
 
 export const replaceSpaceWithDashInStr = (userName) => {

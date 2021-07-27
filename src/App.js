@@ -14,6 +14,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import './App.css';
 import ArticleView from './containers/ArticleView';
 import ArticleManagementList from './containers/ArticleManagmentList';
+import ArticleDetail from './components/Articles/ArticleDetail';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -97,6 +98,7 @@ const App = () => {
           <Route path="/signup" exact component={Signup} />
           <Route path="/:user/:articleId" exact component={ArticleView} />
           <Route path="/articleManagement" exact component={ArticleManagementList}/>
+          <Route path="/articleDetail" exact component={ArticleDetail}/>
         </Switch>
       </Container>
     </Security>
