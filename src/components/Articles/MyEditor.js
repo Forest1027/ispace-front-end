@@ -89,6 +89,7 @@ export default class MyEditor extends Component {
         <div className={editorStyles.editor} onClick={this.focus}>
           <Editor
             name="content"
+            readOnly={this.props.disabled}
             editorState={this.props.editorState}
             onChange={this.props.onChange}
             plugins={plugins}

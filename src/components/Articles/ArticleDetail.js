@@ -11,12 +11,10 @@ import axios from "axios";
 import { createEditorStateWithText } from '@draft-js-plugins/editor';
 import { stateFromHTML } from 'draft-js-import-html'
 import { useHistory } from 'react-router-dom';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import MyDialog from "../UI/MyDialog";
 import { useOktaAuth } from '@okta/okta-react';
+import Snackbar from '@material-ui/core/Snackbar';
+import Alert from '../UI/Alert';
 import { convertFromHTML, ContentState, convertToRaw } from "draft-js";
 import { convertFromRaw } from "draft-js";
 
@@ -65,8 +63,10 @@ const ArticleDetail = (props) => {
     const [editorState, setEditorState] = useState(createEditorStateWithText(""));
     const [isLoading, setIsLoading] = useState(true);
     const history = useHistory();
-    const [open, setOpen] = useState(false);
+    const [toCancel, setToCancel] = useState(false);
     const { authState, oktaAuth } = useOktaAuth();
+    const [success, setSuccess] = useState(false);
+    const [toSave, setToSave] = useState(false);
 
     useConstructor(() => {
         axios.get(`http://localhost:8080/articleManagement/v1/articles/${props.location.state.articleId}`)
@@ -110,7 +110,10 @@ const ArticleDetail = (props) => {
                 }
             })
             .then(res => {
-                history.push("/articleManagement");
+                setSuccess(true);
+                setTimeout(() => {
+                    history.push("/articleManagement");
+                }, 1000);
             })
             .catch(err => {
 
@@ -118,8 +121,6 @@ const ArticleDetail = (props) => {
     }
 
     const onEditorChangeHandler = (editorState) => {
-        console.log("update")
-        console.log(JSON.stringify(stateToHTML(editorState.getCurrentContent())))
         setEditorState(editorState);
         setContent(stateToHTML(editorState.getCurrentContent()));
 
@@ -142,7 +143,10 @@ const ArticleDetail = (props) => {
                 }
             })
             .then(res => {
-                history.push("/articleManagement");
+                setSuccess(true);
+                setTimeout(() => {
+                    history.push("/articleManagement");
+                }, 1000);
             })
             .catch(err => {
 
@@ -150,16 +154,33 @@ const ArticleDetail = (props) => {
     }
 
     const onCancelHandler = () => {
-        setOpen(true);
+        setToCancel(true);
     }
 
     const confirmCancel = () => {
         history.push("/articleManagement");
     }
 
-    const handleClose = () => {
-        setOpen(false);
+    const openSaveConfirm = () => {
+        setToSave(true);
+    }
+
+    const confirmSave = () => {
+        setIsLoading(true);
+        if (props.location.state.mode === constants.MODE_CREATE) {
+            onCreateHandler();
+        } else if (props.location.state.mode === constants.MODE_EDIT) {
+            onUpdateHandler();
+        }
+    }
+
+    const handleCancelClose = () => {
+        setToCancel(false);
     };
+
+    const handleSaveClose = () => {
+        setToSave(false);
+    }
 
     const leavePageHandler = (e) => {
         e = e || window.event;
@@ -182,8 +203,8 @@ const ArticleDetail = (props) => {
                 (<div>
                     <form className={classes.root} noValidate autoComplete="off">
                         <div>
-                            {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} onClick={onCreateHandler}>Create</Button> : null}
-                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={onUpdateHandler}>Update</Button> : null}
+                            {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm}>Create</Button> : null}
+                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm}>Update</Button> : null}
                             <Button variant="outlined" color="primary" className={classes.button} onClick={onCancelHandler}>Cancel</Button>
                         </div>
                         <div>
@@ -198,40 +219,22 @@ const ArticleDetail = (props) => {
                                 multiline
                                 onChange={onChangeHandler}
                                 value={description}
-
                             />
                         </div>
                         <div className={classes.editor}>
                             <MyEditor onChange={onEditorChangeHandler} editorState={editorState} />
                         </div>
                     </form>
-
-                    {props.location.state.articleId}
                 </div>)}
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{"The change is not saved yet"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Cancel update or create? The change won't be saved.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="primary">
-                        No
-                    </Button>
-                    <Button onClick={confirmCancel} color="secondary" autoFocus>
-                        Yes
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            <div>
-                {props.location.state.author}
-            </div>
+            <MyDialog open={toCancel} handleClose={handleCancelClose} dialogTitle={"Change is not saved yet"}
+                dialogContent={"Cancel update or create? The change won't be saved."} handleConfirm={confirmCancel} />
+            <MyDialog open={toSave} handleClose={handleSaveClose} dialogTitle={"The content will be saved"}
+                dialogContent={"Are you sure to save the content?"} handleConfirm={confirmSave} />
+            <Snackbar open={success} autoHideDuration={6000}>
+                <Alert severity="success">
+                    The content has been saved. Redirecting to article list.
+                </Alert>
+            </Snackbar>
         </div>
     )
 };

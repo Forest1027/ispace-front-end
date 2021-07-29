@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { DataGrid } from '@material-ui/data-grid';
 import { useOktaAuth } from '@okta/okta-react';
 import { convertDateToLocal } from '../common/utility';
@@ -120,11 +120,19 @@ const ArticleManagementList = () => {
         );
     }
 
+    const renderArticleLinks = (params) => {
+        return (
+            <div>
+                <Link onClick={() => onEditHandler(params.row.id)}>{params.row.title}</Link>
+            </div>
+        )
+    }
+
 
 
     const columns = [
         { field: 'columnId', headerName: 'ID', width: 90 },
-        { field: 'title', headerName: 'Title', width: 300 },
+        { field: 'title', headerName: 'Title', width: 300, renderCell: renderArticleLinks },
         {
             field: 'category',
             headerName: 'Category',
