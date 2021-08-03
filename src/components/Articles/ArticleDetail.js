@@ -13,10 +13,15 @@ import { stateFromHTML } from 'draft-js-import-html'
 import { useHistory } from 'react-router-dom';
 import MyDialog from "../UI/MyDialog";
 import { useOktaAuth } from '@okta/okta-react';
-import Snackbar from '@material-ui/core/Snackbar';
-import Alert from '../UI/Alert';
-import { convertFromHTML, ContentState, convertToRaw } from "draft-js";
-import { convertFromRaw } from "draft-js";
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MySnackbar from "../UI/MySnackbar";
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import NativeSelect from '@material-ui/core/NativeSelect';
+import { isElement } from "react-dom/cjs/react-dom-test-utils.production.min";
+import ListSubheader from '@material-ui/core/ListSubheader';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -48,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
     link: {
         textDecoration: 'none'
     },
+    formControl: {
+        minWidth: 120,
+    },
     '@media (min-width:550px)': {
         title: {
             width: '25ch',
@@ -67,19 +75,33 @@ const ArticleDetail = (props) => {
     const { authState, oktaAuth } = useOktaAuth();
     const [success, setSuccess] = useState(false);
     const [toSave, setToSave] = useState(false);
+    const [categories, setCategories] = useState({ 'None': [{ 'id': '', 'categoryName': 'None' }] });
+    const [categoryId, setCategoryId] = useState('');
+    const [categoryOpen, setCategoryOpen] = useState(false);
 
     useConstructor(() => {
-        axios.get(`http://localhost:8080/articleManagement/v1/articles/${props.location.state.articleId}`)
+        if (props.location.state.mode === constants.MODE_EDIT) {
+            axios.get(`http://localhost:8080/articleManagement/v1/articles/${props.location.state.articleId}`)
+                .then(res => {
+                    setTitle(res.data.title);
+                    setDescription(res.data.description);
+                    setContent(res.data.content);
+                    setEditorState(EditorState.createWithContent(stateFromHTML(res.data.content)))
+
+                })
+                .catch(error => {
+                    setIsLoading(false);
+                    console.log(error)
+                });
+        }
+        axios.get(`http://localhost:8080/articleManagement/v1/articleCategories/hierarchy`)
             .then(res => {
-                setTitle(res.data.title);
-                setDescription(res.data.description);
-                setContent(res.data.content);
-                setEditorState(EditorState.createWithContent(stateFromHTML(res.data.content)))
+                console.log(res.data)
+                setCategories(res.data);
                 setIsLoading(false);
             })
             .catch(error => {
                 setIsLoading(false);
-                console.log(error)
             });
 
     });
@@ -91,6 +113,8 @@ const ArticleDetail = (props) => {
             setTitle(e.target.value);
         } else if (name === "description") {
             setDescription(e.target.value);
+        } else if (name === "category") {
+            setCategoryId(e.target.value);
         }
     }
 
@@ -101,7 +125,10 @@ const ArticleDetail = (props) => {
             {
                 title: title,
                 description: description,
-                content: content
+                content: content,
+                articleCategory: {
+                    id: categoryId
+                }
             },
             {
                 headers:
@@ -134,7 +161,10 @@ const ArticleDetail = (props) => {
                 id: props.location.state.articleId,
                 title: title,
                 description: description,
-                content: content
+                content: content,
+                articleCategory: {
+                    id: categoryId
+                }
             },
             {
                 headers:
@@ -152,6 +182,14 @@ const ArticleDetail = (props) => {
 
             })
     }
+
+    const handleCategoryClose = () => {
+        setCategoryOpen(false);
+    };
+
+    const handleCategoryOpen = () => {
+        setCategoryOpen(true);
+    };
 
     const onCancelHandler = () => {
         setToCancel(true);
@@ -196,6 +234,8 @@ const ArticleDetail = (props) => {
 
     window.onbeforeunload = leavePageHandler;
 
+
+
     return (
         <div>
             {isLoading ?
@@ -221,6 +261,29 @@ const ArticleDetail = (props) => {
                                 value={description}
                             />
                         </div>
+                        <div>
+                            <FormControl className={classes.formControl} fullWidth>
+                                <InputLabel id="demo-controlled-open-select-label">Category</InputLabel>
+                                <Select
+                                    id="grouped-select"
+                                    name="category"
+                                    open={categoryOpen}
+                                    onClose={handleCategoryClose}
+                                    onOpen={handleCategoryOpen}
+                                    onChange={onChangeHandler}
+                                    value={categoryId}
+                                >
+                                    {
+                                        Object.keys(categories).map(element => {
+                                            let items = (categories[element] !== null) ? categories[element].map(subCategory =>
+                                                (<MenuItem key={subCategory.id} value={subCategory.id}>{subCategory.categoryName}</MenuItem >)
+                                            ) : null
+                                            return [<ListSubheader key={element}>{element}</ListSubheader>, items];
+                                        })
+                                    }
+                                </Select>
+                            </FormControl>
+                        </div>
                         <div className={classes.editor}>
                             <MyEditor onChange={onEditorChangeHandler} editorState={editorState} />
                         </div>
@@ -230,11 +293,7 @@ const ArticleDetail = (props) => {
                 dialogContent={"Cancel update or create? The change won't be saved."} handleConfirm={confirmCancel} />
             <MyDialog open={toSave} handleClose={handleSaveClose} dialogTitle={"The content will be saved"}
                 dialogContent={"Are you sure to save the content?"} handleConfirm={confirmSave} />
-            <Snackbar open={success} autoHideDuration={6000}>
-                <Alert severity="success">
-                    The content has been saved. Redirecting to article list.
-                </Alert>
-            </Snackbar>
+            <MySnackbar open={success} severity={"success"} content={"The content has been saved. Redirecting to article list."} />
         </div>
     )
 };

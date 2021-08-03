@@ -7,6 +7,8 @@ import axios from "axios";
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import * as constants from '../common/Constants'
+import MySnackbar from '../components/UI/MySnackbar';
+import MyDialog from '../components/UI/MyDialog';
 
 const useStyles = makeStyles((theme) => ({
     categoryRoot: {
@@ -32,6 +34,10 @@ const ArticleManagementList = () => {
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
     const history = useHistory();
+    const [toDelete, setToDelete] = useState(false);
+    const [deleteArticleTitle, setDeleteArticleTitle] = useState("");
+    const [deleteArticleId, setDeleteArticleId] = useState(0);
+    const [deleteSuccess, setDeleteSuccess] = useState(false);
 
     const url = "http://localhost:8080/articleManagement/v1/articles"
 
@@ -62,6 +68,7 @@ const ArticleManagementList = () => {
                     })
                     return [...new Set([...res.data])];
                 });
+                setLoading(false);
             }).catch(error => {
                 setError(error);
             });
@@ -103,7 +110,27 @@ const ArticleManagementList = () => {
         });
     }
 
+    const handleDeleteClose = () => {
+        setToDelete(false);
+    }
+
+    const handleDeleteOpen = (article) => {
+        setDeleteArticleTitle(article.title);
+        setDeleteArticleId(article.id);
+        setToDelete(true);
+    }
+
     const onDeleteHandler = (articleId) => {
+        const accessToken = `Bearer ${oktaAuth.getAccessToken()}`;
+        axios.delete(`http://localhost:8080/articleManagement/v1/articles/${articleId}`, { headers: { 'Authorization': accessToken } })
+            .then(res => {
+                setToDelete(false);
+                setDeleteSuccess(true);
+                fetchArticles();
+            })
+            .catch(error => {
+                console.log(error)
+            });
 
     }
 
@@ -115,7 +142,7 @@ const ArticleManagementList = () => {
         return (
             <div>
                 <Button color="secondary" onClick={() => onEditHandler(params.row.id)}>Edit</Button>
-                <Button color="primary" onClick={onDeleteHandler}>Delete</Button>
+                <Button color="primary" onClick={() => handleDeleteOpen(params.row)}>Delete</Button>
             </div>
         );
     }
@@ -123,7 +150,7 @@ const ArticleManagementList = () => {
     const renderArticleLinks = (params) => {
         return (
             <div>
-                <Link onClick={() => onEditHandler(params.row.id)}>{params.row.title}</Link>
+                <div onClick={() => onEditHandler(params.row.id)}>{params.row.title}</div>
             </div>
         )
     }
@@ -131,8 +158,8 @@ const ArticleManagementList = () => {
 
 
     const columns = [
-        { field: 'columnId', headerName: 'ID', width: 90 },
-        { field: 'title', headerName: 'Title', width: 300, renderCell: renderArticleLinks },
+        { field: 'columnId', headerName: 'ID', width: 90, },
+        { field: 'title', headerName: 'Title', width: 300, renderCell: renderArticleLinks, },
         {
             field: 'category',
             headerName: 'Category',
@@ -167,7 +194,7 @@ const ArticleManagementList = () => {
             <div className={classes.categoryRoot}>
                 <div className={classes.categoryButtons}>
                     <Button variant="outlined" color="secondary" onClick={onCreateHandler}>Create</Button>
-                    <Button variant="outlined" color="primary">Delete</Button>
+                    {/* <Button variant="outlined" color="primary">Delete</Button> */}
                 </div>
             </div>
             <div style={{ height: 400, width: '100%' }}>
@@ -175,7 +202,7 @@ const ArticleManagementList = () => {
                     rows={articles}
                     columns={columns}
                     pageSize={size}
-                    checkboxSelection
+                    // checkboxSelection
                     rowCount={count}
                     page={page - 1}
                     pagination
@@ -184,8 +211,12 @@ const ArticleManagementList = () => {
                         setPage(params.page + 1);
                     }}
                     loading={loading}
+                    headerAlign='center'
                 />
             </div>
+            <MyDialog open={toDelete} handleClose={handleDeleteClose} dialogTitle={"Delete the article"}
+                dialogContent={`Are you sure to delete article "${deleteArticleTitle}"`} handleConfirm={() => onDeleteHandler(deleteArticleId)} />
+            <MySnackbar open={deleteSuccess} severity={"success"} content={"The content has been successfully deleted."} />
         </div>
     )
 }
