@@ -37,3 +37,15 @@ export const updateObject = (oldObject, updatedProperties) => {
 export const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export const convertDateToLocal = (dateStr) => {
+    const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const date = new Date(dateStr)
+    const result = date.toLocaleString("en-US", {timeZone: localTimeZone});
+    const arr = result.split(",");
+    return arr[0];
+}
+
+export const replaceSpaceWithDashInStr = (userName) => {
+    return userName.replace(/\s/g, '-');
+}

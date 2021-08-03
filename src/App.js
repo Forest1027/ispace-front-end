@@ -12,6 +12,9 @@ import Signup from './containers/Signup';
 import { makeStyles } from '@material-ui/core/styles';
 
 import './App.css';
+import ArticleView from './containers/ArticleView';
+import ArticleManagementList from './containers/ArticleManagmentList';
+import ArticleDetail from './components/Articles/ArticleDetail';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,7 +56,16 @@ const App = () => {
     history.push("/signup");
   }
 
+  const viewMyArticles = async () => {
+    history.push("/articleManagement");
+  }
+
   const [navItems] = useState({
+    "My Articles": {
+      "isAuth": true,
+      "clicked": viewMyArticles,
+      "icon": layoutConstants.MY_ARTICLE_ICON
+    },
     "Login": {
       "isAuth": false,
       "clicked": login,
@@ -84,6 +96,9 @@ const App = () => {
           <Route path="/login/callback" render={(props) => <LoginCallback {...props} onAuthResume={onAuthResume} />} />
           <Route path="/login" exact component={Login} />
           <Route path="/signup" exact component={Signup} />
+          <Route path="/:user/:articleId" exact component={ArticleView} />
+          <Route path="/articleManagement" exact component={ArticleManagementList}/>
+          <Route path="/articleDetail" exact component={ArticleDetail}/>
         </Switch>
       </Container>
     </Security>
