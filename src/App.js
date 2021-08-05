@@ -15,6 +15,8 @@ import './App.css';
 import ArticleView from './containers/ArticleView';
 import ArticleManagementList from './containers/ArticleManagmentList';
 import ArticleDetail from './components/Articles/ArticleDetail';
+import withErrorHandler from './common/withErrorHandler';
+import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -105,5 +107,5 @@ const App = () => {
   );
 };
 
-export default App;
+export default withErrorHandler(App, axios);
 

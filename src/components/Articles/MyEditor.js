@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 
-import Editor, { createEditorStateWithText } from '@draft-js-plugins/editor';
+import Editor from '@draft-js-plugins/editor';
 import '@draft-js-plugins/static-toolbar/lib/plugin.css';
-import { convertToRaw, EditorState } from 'draft-js';
 
 
 import createToolbarPlugin, {
@@ -73,8 +72,6 @@ class HeadlinesButton extends Component {
 const toolbarPlugin = createToolbarPlugin();
 const { Toolbar } = toolbarPlugin;
 const plugins = [toolbarPlugin];
-const text =
-  'In this editor a toolbar shows up once you select part of the text …';
 
 export default class MyEditor extends Component {
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { DataGrid } from '@material-ui/data-grid';
 import { useOktaAuth } from '@okta/okta-react';
 import { convertDateToLocal } from '../common/utility';
@@ -9,6 +9,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import * as constants from '../common/Constants'
 import MySnackbar from '../components/UI/MySnackbar';
 import MyDialog from '../components/UI/MyDialog';
+import ErrorMessage from '../components/UI/ErrorMessage';
 
 const useStyles = makeStyles((theme) => ({
     categoryRoot: {
@@ -28,10 +29,10 @@ const ArticleManagementList = () => {
     const [userInfo, setUserInfo] = useState(null);
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
-    const [size, setSize] = useState(5);
+    const [size, ] = useState(5);
     const [count, setCount] = useState(0);
     const [articles, setArticles] = useState([]);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const history = useHistory();
     const [toDelete, setToDelete] = useState(false);
@@ -46,11 +47,15 @@ const ArticleManagementList = () => {
         const accessToken = `Bearer ${oktaAuth.getAccessToken()}`;
         axios.get(`http://localhost:8080/articleManagement/v1/articles/count/${email}`, { headers: { 'Authorization': accessToken } })
             .then(res => {
-                console.log("result: " + res.data)
-                setCount(res.data);
+                if (res.status === 200) {
+                    setCount(res.data);
+                } else {
+                    console.log(res)
+                    setError(res.data);
+                }
             })
             .catch(error => {
-                console.log(error)
+                setError(error)
             });
     }, [oktaAuth]);
 
@@ -58,16 +63,20 @@ const ArticleManagementList = () => {
         setLoading(true);
         axios.get(`${url}?page=${page}&size=${size}&search=${query}`)
             .then(res => {
-                setArticles(prev => {
-                    res.data.map((ele, index) => {
-                        ele.category = ele.articleCategory.categoryName;
-                        ele.createTime = convertDateToLocal(ele.createTime);
-                        ele.updateTime = convertDateToLocal(ele.updateTime);
-                        ele.columnId = (page - 1) * size + index + 1;
-                        return ele;
-                    })
-                    return [...new Set([...res.data])];
-                });
+                if (res.status === 200) {
+                    setArticles(prev => {
+                        res.data.map((ele, index) => {
+                            ele.category = ele.articleCategory.categoryName;
+                            ele.createTime = convertDateToLocal(ele.createTime);
+                            ele.updateTime = convertDateToLocal(ele.updateTime);
+                            ele.columnId = (page - 1) * size + index + 1;
+                            return ele;
+                        })
+                        return [...new Set([...res.data])];
+                    });
+                } else {
+                    setError(res.data);
+                }
                 setLoading(false);
             }).catch(error => {
                 setError(error);
@@ -76,18 +85,22 @@ const ArticleManagementList = () => {
 
 
     useEffect(() => {
+        let mounted = true;
         if (!authState.isAuthenticated) {
             // When user isn't authenticated, forget any user info
             setUserInfo(null);
         } else {
             oktaAuth.getUser().then((info) => {
-                setUserInfo(info);
-                setQuery(`authorEmail==${info.email}`)
-                fetchArticleCount(info.email);
-                fetchArticles();
-                setLoading(false);
+                if(mounted) {
+                    setUserInfo(info);
+                    setQuery(`authorEmail==${info.email}`)
+                    fetchArticleCount(info.email);
+                    fetchArticles();
+                    setLoading(false);
+                }
             });
         }
+        return () => mounted = false;
     }, [authState, oktaAuth, fetchArticles, fetchArticleCount, count]);
 
     const onEditHandler = (articleId) => {
@@ -124,17 +137,18 @@ const ArticleManagementList = () => {
         const accessToken = `Bearer ${oktaAuth.getAccessToken()}`;
         axios.delete(`http://localhost:8080/articleManagement/v1/articles/${articleId}`, { headers: { 'Authorization': accessToken } })
             .then(res => {
-                setToDelete(false);
-                setDeleteSuccess(true);
-                fetchArticles();
+                if (res.status === 200) {
+                    setToDelete(false);
+                    setDeleteSuccess(true);
+                    fetchArticles();
+                } else {
+                    setError(res.data);
+                }
+
             })
             .catch(error => {
-                console.log(error)
+                setError(error);
             });
-
-    }
-
-    const onBulkDeleteHandler = (articleIds) => {
 
     }
 
@@ -188,35 +202,40 @@ const ArticleManagementList = () => {
 
     return (
         <div>
-            <div>
-                <h1>Manage My Articles</h1>
-            </div>
-            <div className={classes.categoryRoot}>
-                <div className={classes.categoryButtons}>
-                    <Button variant="outlined" color="secondary" onClick={onCreateHandler}>Create</Button>
-                    {/* <Button variant="outlined" color="primary">Delete</Button> */}
+            {error !== null ? (<ErrorMessage />) : (
+                <div>
+                    <div>
+                        <h1>Manage My Articles</h1>
+                    </div>
+                    <div className={classes.categoryRoot}>
+                        <div className={classes.categoryButtons}>
+                            <Button variant="outlined" color="secondary" onClick={onCreateHandler}>Create</Button>
+                            {/* <Button variant="outlined" color="primary">Delete</Button> */}
+                        </div>
+                    </div>
+                    <div style={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={articles}
+                            columns={columns}
+                            pageSize={size}
+                            // checkboxSelection
+                            rowCount={count}
+                            page={page - 1}
+                            pagination
+                            paginationMode="server"
+                            onPageChange={(params) => {
+                                setPage(params.page + 1);
+                            }}
+                            loading={loading}
+                            headerAlign='center'
+                        />
+                    </div>
                 </div>
-            </div>
-            <div style={{ height: 400, width: '100%' }}>
-                <DataGrid
-                    rows={articles}
-                    columns={columns}
-                    pageSize={size}
-                    // checkboxSelection
-                    rowCount={count}
-                    page={page - 1}
-                    pagination
-                    paginationMode="server"
-                    onPageChange={(params) => {
-                        setPage(params.page + 1);
-                    }}
-                    loading={loading}
-                    headerAlign='center'
-                />
-            </div>
+            )}
+
             <MyDialog open={toDelete} handleClose={handleDeleteClose} dialogTitle={"Delete the article"}
                 dialogContent={`Are you sure to delete article "${deleteArticleTitle}"`} handleConfirm={() => onDeleteHandler(deleteArticleId)} />
-            <MySnackbar open={deleteSuccess} severity={"success"} content={"The content has been successfully deleted."} />
+            <MySnackbar open={deleteSuccess} severity={"success"} content={"The content has been successfully deleted."} setOpen={setDeleteSuccess}/>
         </div>
     )
 }

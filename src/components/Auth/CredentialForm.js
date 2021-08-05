@@ -84,10 +84,10 @@ const CredentialForm = (props) => {
                             />
                         </Box>
                     ))}
-                    <Box className={classes.body}>
+                    {/* <Box className={classes.body}>
                         <input type="checkbox" name="remember" id="remember" />
                         <label>Remember me</label>
-                    </Box>
+                    </Box> */}
                     <Box className={classes.body}>
                         <Button className={classes.submitButton} variant="contained" onClick={props.submitted} disabled={!props.formValid}
                         >Submit</Button>

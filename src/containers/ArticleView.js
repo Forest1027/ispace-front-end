@@ -45,7 +45,11 @@ const ArticleView = (props) => {
         setError(false);
         axios.get(`http://localhost:8080/articleManagement/v1/articles/${id}`)
             .then(res => {
-                setArticle(res.data);
+                if (res.status === 200) {
+                    setArticle(res.data);
+                } else {
+                    setError(res.data);
+                }
                 setLoading(false);
             })
             .catch(error => {
@@ -75,7 +79,7 @@ const ArticleView = (props) => {
                     <div><p><i>{article.description}</i></p></div>
                 </Box>
                 <Box className={classes.content} justifyContent="flex-start">
-                    <div dangerouslySetInnerHTML={{__html:DOMPurify.sanitize(article.content)}}/>
+                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }} />
                 </Box>
             </Box>
             {loading ? <div >Loading...</div> : null}

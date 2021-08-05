@@ -16,18 +16,22 @@ const useSearchArticles = (query, page, url) => {
           setError(false);
           axios.get(`${url}?page=${page}&size=10&search=${query}`)
                .then(res => {
-                    setArticles(prev => {
-                         return [...new Set([...prev, ...res.data])];
-                    });
-                    setHasMore(res.data.length > 0);
+                    if (res.status === 200) {
+                         setArticles(prev => {
+                              return [...new Set([...prev, ...res.data])];
+                         });
+                         setHasMore(res.data.length > 0);
+                    } else {
+                         setError(res.data);
+                    }
                     setLoading(false);
                }).catch(error => {
                     setLoading(false);
                     setError(error);
                });
-     }, [query, page,url]);
+     }, [query, page, url]);
 
-     return {loading, error, articles, hasMore};
+     return { loading, error, articles, hasMore };
 }
 
 export default useSearchArticles;
