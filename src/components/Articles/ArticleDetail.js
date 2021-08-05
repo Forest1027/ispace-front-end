@@ -115,6 +115,7 @@ const ArticleDetail = (props) => {
         }
     });
     const [formIsValid, setFormIsValid] = useState(false);
+    const [updateFormIsValid, setUpdateFormIsValid] = useState(true);
 
     const { oktaAuth } = useOktaAuth();
 
@@ -156,8 +157,47 @@ const ArticleDetail = (props) => {
         const inputVal = e.target.value;
         const errorArr = checkValidity(inputVal, form[name].validation, null);
         const helpText = errorArr.join(',');
-        const updatedObj = updateObject(form, {
-            [name]: updateObject(form[name], {
+        let resetObj;
+        if (props.location.state.mode === constants.MODE_EDIT) {
+            resetObj = updateObject(form, {
+                title: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                description: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                category: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                content: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                }
+            })
+        } else {
+            resetObj = form;
+        }
+        const updatedObj = updateObject(resetObj, {
+            [name]: updateObject(resetObj[name], {
                 touched: true,
                 valid: errorArr.length === 0,
                 helpText: helpText
@@ -168,7 +208,12 @@ const ArticleDetail = (props) => {
             formValid = formValid && updatedObj[key].valid
         }
         setForm(updatedObj);
-        setFormIsValid(formValid);
+        if (props.location.state.mode === constants.MODE_EDIT) {
+            setUpdateFormIsValid(formValid);
+        } else {
+            setFormIsValid(formValid);
+        }
+
 
         if (name === "title") {
             setTitle(inputVal);
@@ -192,7 +237,6 @@ const ArticleDetail = (props) => {
         }
         setForm(updatedObj);
         setFormIsValid(formValid);
-        console.log(formIsValid)
         setEditorState(editorState);
         setContent(stateToHTML(editorState.getCurrentContent()));
 
@@ -334,7 +378,7 @@ const ArticleDetail = (props) => {
                     <form className={classes.root} noValidate autoComplete="off">
                         <div>
                             {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm} disabled={!formIsValid}>Create</Button> : null}
-                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm} disabled={!formIsValid}>Update</Button> : null}
+                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm} disabled={!updateFormIsValid}>Update</Button> : null}
                             <Button variant="outlined" color="primary" className={classes.button} onClick={onCancelHandler}>Cancel</Button>
                         </div>
                         <div>
