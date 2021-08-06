@@ -4,6 +4,7 @@ import CredentialForm from "../components/Auth/CredentialForm";
 import * as constants from '../common/Constants';
 import axios from "axios";
 import ErrorModal from "../components/UI/ErrorModal";
+import { isNotNull } from "../common/utility";
 
 const Signup = (props) => {
     const [credentialType] = useState(constants.SIGNUP);
@@ -127,19 +128,26 @@ const Signup = (props) => {
         };
         axios.post('http://localhost:8080/userManagement/v1/users/register', userInfo)
             .then(res => {
-                setRegistered(true)
-                setTimeout(() => {
-                    props.history.push('/login')
-                }, 3000);
+                if (res.status === 200) {
+                    setRegistered(true)
+                    setTimeout(() => {
+                        props.history.push('/login')
+                    }, 3000);
+                } 
             })
             .catch(error => {
-                var errorSummary = error.response.data.errorCauses
-                if (errorSummary !== null) {
-                    setError(errorSummary.map((sum) => sum['errorSummary']).join());
-                } else {
-                    setError(error.response.data.errorSummary);
+                const errRes = error.response.data;
+                if (isNotNull(errRes)) {
+                    const causes = errRes.errorCauses;
+                    if (isNotNull(causes)) {
+                        setError(causes.map(cause => cause['errorSummary']).join());
+                    }else if (isNotNull(errRes.errors)) {
+                        setError(errRes.errors.map(msg => msg['defaultMessage']).join());
+                    }else {
+                        setError(error.message);
+                    }
                 }
-                setOpen(true);
+                setOpen(true)
             });
     };
 

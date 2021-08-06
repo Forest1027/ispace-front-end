@@ -13,15 +13,16 @@ import { stateFromHTML } from 'draft-js-import-html'
 import { useHistory } from 'react-router-dom';
 import MyDialog from "../UI/MyDialog";
 import { useOktaAuth } from '@okta/okta-react';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MySnackbar from "../UI/MySnackbar";
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import NativeSelect from '@material-ui/core/NativeSelect';
-import { isElement } from "react-dom/cjs/react-dom-test-utils.production.min";
 import ListSubheader from '@material-ui/core/ListSubheader';
+import Progress from "../UI/Progress";
+import { isNotNull, checkValidity, updateObject } from "../../common/utility";
+import ErrorModal from "../UI/ErrorModal";
+import FormHelperText from '@material-ui/core/FormHelperText';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -65,38 +66,83 @@ const useStyles = makeStyles((theme) => ({
 
 const ArticleDetail = (props) => {
     const classes = useStyles();
+    const history = useHistory();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [content, setContent] = useState("");
     const [editorState, setEditorState] = useState(createEditorStateWithText(""));
     const [isLoading, setIsLoading] = useState(true);
-    const history = useHistory();
     const [toCancel, setToCancel] = useState(false);
-    const { authState, oktaAuth } = useOktaAuth();
     const [success, setSuccess] = useState(false);
     const [toSave, setToSave] = useState(false);
     const [categories, setCategories] = useState({ 'None': [{ 'id': '', 'categoryName': 'None' }] });
-    const [categoryId, setCategoryId] = useState('');
+    const [categoryId, setCategoryId] = useState("");
     const [categoryOpen, setCategoryOpen] = useState(false);
+    const [error, setError] = useState(null);
+    const [errorOpen, setErrorOpen] = useState(false);
+    const [form, setForm] = useState({
+        title: {
+            touched: false,
+            valid: false,
+            helpText: '',
+            validation: {
+                required: true,
+            }
+        },
+        description: {
+            touched: false,
+            valid: false,
+            helpText: '',
+            validation: {
+                required: true,
+            }
+        },
+        category: {
+            touched: false,
+            valid: false,
+            helpText: '',
+            validation: {
+                required: true,
+            }
+        },
+        content: {
+            touched: false,
+            valid: false,
+            helpText: '',
+            validation: {
+                required: true,
+            }
+        }
+    });
+    const [formIsValid, setFormIsValid] = useState(false);
+    const [updateFormIsValid, setUpdateFormIsValid] = useState(true);
+
+    const { oktaAuth } = useOktaAuth();
 
     useConstructor(() => {
         if (props.location.state.mode === constants.MODE_EDIT) {
             axios.get(`http://localhost:8080/articleManagement/v1/articles/${props.location.state.articleId}`)
                 .then(res => {
-                    setTitle(res.data.title);
-                    setDescription(res.data.description);
-                    setContent(res.data.content);
-                    setEditorState(EditorState.createWithContent(stateFromHTML(res.data.content)))
-
+                    if (res.status === 200) {
+                        setTitle(res.data.title);
+                        setDescription(res.data.description);
+                        setContent(res.data.content);
+                        setCategoryId(res.data.articleCategory.id);
+                        setEditorState(EditorState.createWithContent(stateFromHTML(res.data.content)))
+                    }
                 })
                 .catch(error => {
+                    if (isNotNull(error.response.data)) {
+                        setError(error.response.data);
+                    } else {
+                        setError(error.message);
+                    }
+                    setErrorOpen(true);
                     setIsLoading(false);
-                    console.log(error)
                 });
         }
         axios.get(`http://localhost:8080/articleManagement/v1/articleCategories/hierarchy`)
             .then(res => {
-                console.log(res.data)
                 setCategories(res.data);
                 setIsLoading(false);
             })
@@ -107,15 +153,93 @@ const ArticleDetail = (props) => {
     });
 
     const onChangeHandler = (e) => {
-        console.log(e.target.name);
-        const name = e.target.name
-        if (name === "title") {
-            setTitle(e.target.value);
-        } else if (name === "description") {
-            setDescription(e.target.value);
-        } else if (name === "category") {
-            setCategoryId(e.target.value);
+        const name = e.target.name;
+        const inputVal = e.target.value;
+        const errorArr = checkValidity(inputVal, form[name].validation, null);
+        const helpText = errorArr.join(',');
+        let resetObj;
+        if (props.location.state.mode === constants.MODE_EDIT) {
+            resetObj = updateObject(form, {
+                title: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                description: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                category: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                },
+                content: {
+                    touched: false,
+                    valid: true,
+                    helpText: '',
+                    validation: {
+                        required: true,
+                    }
+                }
+            })
+        } else {
+            resetObj = form;
         }
+        const updatedObj = updateObject(resetObj, {
+            [name]: updateObject(resetObj[name], {
+                touched: true,
+                valid: errorArr.length === 0,
+                helpText: helpText
+            })
+        });
+        let formValid = true;
+        for (let key in updatedObj) {
+            formValid = formValid && updatedObj[key].valid
+        }
+        setForm(updatedObj);
+        if (props.location.state.mode === constants.MODE_EDIT) {
+            setUpdateFormIsValid(formValid);
+        } else {
+            setFormIsValid(formValid);
+        }
+
+
+        if (name === "title") {
+            setTitle(inputVal);
+        } else if (name === "description") {
+            setDescription(inputVal);
+        } else if (name === "category") {
+            setCategoryId(inputVal);
+        }
+    }
+
+    const onEditorChangeHandler = (editorState) => {
+        const updatedObj = updateObject(form, {
+            content: updateObject(form.content, {
+                touched: true,
+                valid: isNotNull(editorState.getCurrentContent().getPlainText()),
+            })
+        });
+        let formValid = true;
+        for (let key in updatedObj) {
+            formValid = formValid && updatedObj[key].valid
+        }
+        setForm(updatedObj);
+        setFormIsValid(formValid);
+        setEditorState(editorState);
+        setContent(stateToHTML(editorState.getCurrentContent()));
+
     }
 
     const onCreateHandler = () => {
@@ -142,15 +266,16 @@ const ArticleDetail = (props) => {
                     history.push("/articleManagement");
                 }, 1000);
             })
-            .catch(err => {
-
+            .catch(error => {
+                const res = error.response.data;
+                if (isNotNull(res) && isNotNull(res.errors)) {
+                    setError(res.errors.map(msg => msg['defaultMessage']).join(", "));
+                } else {
+                    setError(error.message);
+                }
+                setErrorOpen(true);
+                setIsLoading(false);
             });
-    }
-
-    const onEditorChangeHandler = (editorState) => {
-        setEditorState(editorState);
-        setContent(stateToHTML(editorState.getCurrentContent()));
-
     }
 
     const onUpdateHandler = () => {
@@ -178,8 +303,15 @@ const ArticleDetail = (props) => {
                     history.push("/articleManagement");
                 }, 1000);
             })
-            .catch(err => {
-
+            .catch(error => {
+                const res = error.response.data;
+                if (isNotNull(res) && isNotNull(res.errors)) {
+                    setError(res.errors.map(msg => msg['defaultMessage']).join(", "));
+                } else {
+                    setError(error.message);
+                }
+                setErrorOpen(true);
+                setIsLoading(false);
             })
     }
 
@@ -196,6 +328,7 @@ const ArticleDetail = (props) => {
     }
 
     const confirmCancel = () => {
+        handleCancelClose();
         history.push("/articleManagement");
     }
 
@@ -204,6 +337,7 @@ const ArticleDetail = (props) => {
     }
 
     const confirmSave = () => {
+        handleSaveClose();
         setIsLoading(true);
         if (props.location.state.mode === constants.MODE_CREATE) {
             onCreateHandler();
@@ -239,16 +373,26 @@ const ArticleDetail = (props) => {
     return (
         <div>
             {isLoading ?
-                <div>Loading...</div> :
+                <Progress loading={isLoading} /> :
                 (<div>
                     <form className={classes.root} noValidate autoComplete="off">
                         <div>
-                            {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm}>Create</Button> : null}
-                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm}>Update</Button> : null}
+                            {props.location.state.mode === constants.MODE_CREATE ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm} disabled={!formIsValid}>Create</Button> : null}
+                            {props.location.state.mode === constants.MODE_EDIT ? <Button variant="outlined" color="secondary" className={classes.button} onClick={openSaveConfirm} disabled={!updateFormIsValid}>Update</Button> : null}
                             <Button variant="outlined" color="primary" className={classes.button} onClick={onCancelHandler}>Cancel</Button>
                         </div>
                         <div>
-                            <TextField id="standard-basic" label="Title" fullWidth name="title" onChange={onChangeHandler} value={title} />
+                            <TextField
+                                id="standard-basic"
+                                label="Title"
+                                fullWidth
+                                name="title"
+                                onChange={onChangeHandler}
+                                value={title}
+                                required
+                                error={!form.title.valid && form.title.touched}
+                                helperText={(!form.title.valid && form.title.touched) ? form.title.helpText : ""}
+                            />
                         </div>
                         <div>
                             <TextField
@@ -259,6 +403,9 @@ const ArticleDetail = (props) => {
                                 multiline
                                 onChange={onChangeHandler}
                                 value={description}
+                                required
+                                error={!form.description.valid && form.description.touched}
+                                helperText={(!form.description.valid && form.description.touched) ? form.description.helpText : ""}
                             />
                         </div>
                         <div>
@@ -272,6 +419,8 @@ const ArticleDetail = (props) => {
                                     onOpen={handleCategoryOpen}
                                     onChange={onChangeHandler}
                                     value={categoryId}
+                                    required
+                                    error={!form.category.valid && form.category.touched}
                                 >
                                     {
                                         Object.keys(categories).map(element => {
@@ -281,6 +430,7 @@ const ArticleDetail = (props) => {
                                             return [<ListSubheader key={element}>{element}</ListSubheader>, items];
                                         })
                                     }
+                                    <FormHelperText>{(!form.category.valid && form.category.touched) ? form.category.helpText : ""}</FormHelperText>
                                 </Select>
                             </FormControl>
                         </div>
@@ -289,11 +439,12 @@ const ArticleDetail = (props) => {
                         </div>
                     </form>
                 </div>)}
+            <ErrorModal open={errorOpen} error={error} setOpen={setErrorOpen} />
             <MyDialog open={toCancel} handleClose={handleCancelClose} dialogTitle={"Change is not saved yet"}
                 dialogContent={"Cancel update or create? The change won't be saved."} handleConfirm={confirmCancel} />
             <MyDialog open={toSave} handleClose={handleSaveClose} dialogTitle={"The content will be saved"}
                 dialogContent={"Are you sure to save the content?"} handleConfirm={confirmSave} />
-            <MySnackbar open={success} severity={"success"} content={"The content has been saved. Redirecting to article list."} />
+            <MySnackbar open={success} severity={"success"} setOpen={setSuccess} content={"The content has been saved. Redirecting to article list."} />
         </div>
     )
 };

@@ -8,6 +8,8 @@ import Divider from '@material-ui/core/Divider';
 import axios from "axios";
 import useConstructor from '../hooks/useConstructor';
 import ArticleList from '../components/Articles/ArticleList';
+import Progress from '../components/UI/Progress';
+import ErrorMessage from '../components/UI/ErrorMessage';
 
 const useStyles = makeStyles((theme) => ({
   sectionRoot: {
@@ -51,21 +53,29 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Home = (props) => {
+const Home = () => {
   const classes = useStyles();
   const { authState, oktaAuth } = useOktaAuth();
   const [userInfo, setUserInfo] = useState(null);
   const [articleCategories, setArticleCategories] = useState([]);
-  const [query, setQuery] = useState("");
+  const [query, ] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const url = "http://localhost:8080/articleManagement/v1/articles"
 
   useConstructor(() => {
     axios.get("http://localhost:8080/articleManagement/v1/articleCategories?page=1&size=10")
       .then(res => {
-        setArticleCategories(res.data);
+        if(res.status === 200 ){
+          setArticleCategories(res.data);
+        }else {
+          setError(res.data);
+        }
+        setLoading(false);
       })
       .catch(error => {
-        console.log(error)
+        setLoading(false);
+        setError(error)
       });
 
   });
@@ -84,7 +94,7 @@ const Home = (props) => {
 
   if (authState.isPending) {
     return (
-      <div>Loading...</div>
+      <Progress loading={true} />
     );
   }
 
@@ -119,31 +129,37 @@ const Home = (props) => {
           )}
 
       </div>
-      
+
       <Divider className={classes.divider} />
       <div>
-        <div className={classes.sectionRoot}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={8}>
-              <ArticleList url={url} query={query}/>
+        {error === null ?
+          (<div className={classes.sectionRoot}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={8}>
+                <ArticleList url={url} query={query} />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                {
+                  loading ? null : (
+                    <div className={classes.categoryRoot}>
+                      <div>
+                        <Typography variant="button">
+                          Discover new topics...
+                        </Typography>
+                      </div>
+                      <div className={classes.categoryButtons}>
+                        {articleCategories.map(element => {
+                          return (<Button variant="outlined" key={element.id}>{element.categoryName}</Button>)
+                        })}
+                      </div>
+                    </div>
+                  )
+                }
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={4}>
+          </div>) : <ErrorMessage />
+        }
 
-              <div className={classes.categoryRoot}>
-                <div>
-                  <Typography variant="button">
-                    Discover new topics...
-                  </Typography>
-                </div>
-                <div className={classes.categoryButtons}>
-                  {articleCategories.map(element => {
-                    return (<Button variant="outlined" key={element.id}>{element.categoryName}</Button>)
-                  })}
-                </div>
-              </div>
-            </Grid>
-          </Grid>
-        </div>
       </div>
     </div >
   );

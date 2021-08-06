@@ -1,18 +1,22 @@
 export const checkValidity = (value, identifier, password) => {
     let error = [];
-    if(identifier.required) {
-        if(value.trim() === '') {
+    if (identifier.required) {
+        if (typeof value === 'number') {
+            if (isNull(value)) {
+                error.push('Cannot be empty');
+            }
+        } else if (value.trim() === '') {
             error.push('Cannot be empty');
         }
     }
-    if(identifier.isEmail) {
-        if(!(new RegExp('[A-Za-z0-9]+@[A-Za-z0-9.]+\\.[A-Za-z]{2,}')).test(value)) {
+    if (identifier.isEmail) {
+        if (!(new RegExp('[A-Za-z0-9]+@[A-Za-z0-9.]+\\.[A-Za-z]{2,}')).test(value)) {
             error.push('Should have email format');
         }
     }
 
-    if(identifier.sameAsPassword) {
-        if(value !== password) {
+    if (identifier.sameAsPassword) {
+        if (value !== password) {
             error.push('Should be the same as password');
         }
     }
@@ -41,7 +45,7 @@ export const sleep = (ms) => {
 export const convertDateToLocal = (dateStr) => {
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const date = new Date(dateStr)
-    const result = date.toLocaleString("en-US", {timeZone: localTimeZone});
+    const result = date.toLocaleString("en-US", { timeZone: localTimeZone });
     const arr = result.split(",");
     return arr[0];
 }

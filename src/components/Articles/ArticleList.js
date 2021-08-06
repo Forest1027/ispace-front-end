@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { convertDateToLocal, replaceSpaceWithDashInStr } from '../../common/utility';
 import { NavLink } from 'react-router-dom';
 import useSearchArticles from '../../hooks/useSearchArticles';
+import Progress from '../UI/Progress';
 
 const useStyles = makeStyles((theme) => ({
     sectionRoot: {
@@ -67,7 +68,7 @@ const ArticleList = (props) => {
     return (
         <div>
             <div>
-                {articles.length === 0 ?
+                {articles.length === 0 && !loading ?
                     (<div>No article available.</div>) :
                     articles.map((element, index) => {
                         const content = (
@@ -112,7 +113,7 @@ const ArticleList = (props) => {
 
                     })}
             </div>
-            {loading ? <div >Loading...</div> : null}
+            {loading ? <Progress loading={loading}/> : null}
             {error ? <div>Error occurs, please try again later.</div> : null}
         </div>
     )
