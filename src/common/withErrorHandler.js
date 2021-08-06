@@ -3,12 +3,8 @@ import MySnackbar from "../components/UI/MySnackbar";
 
 const withErrorHandler = (WrappedComponent, axios) => {
     return props => {
-        console.log("in error handler")
         const [error, setError] = useState(null);
-
-        const errorConfirmedHandler = () => {
-            setError(null);
-        }
+        const [open, setOpen] = useState(false);
 
         const reqInterceptor = axios.interceptors.request.use(req => {
             setError(null);
@@ -28,8 +24,8 @@ const withErrorHandler = (WrappedComponent, axios) => {
         return (
             <div>
                 <MySnackbar
-                    open={error !== null}
-                    onClose={errorConfirmedHandler}
+                    open={open}
+                    setOpen={setOpen}
                     severity="error"
                     content={error ? error.message : null}
                 />
